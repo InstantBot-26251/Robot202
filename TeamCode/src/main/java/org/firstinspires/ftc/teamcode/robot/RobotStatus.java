@@ -12,10 +12,13 @@ public class RobotStatus {
         DISABLED, AUTONOMOUS_INIT, AUTONOMOUS_ENABLED, TELEOP_INIT, TELEOP_ENABLED
     }
 
+    // Add Motif State
+
     public static long delayMs = 0;
     public static Alliance alliance = Alliance.NONE;
     public static RobotState robotState = RobotState.DISABLED;
     public static Pose robotPose = new Pose();
+    public static boolean liveView = false;
 
     public static void resetValues() {
         delayMs = 0;
