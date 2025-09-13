@@ -4,12 +4,9 @@ package org.firstinspires.ftc.teamcode.vision;
 import android.util.Size;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.robot.Unnamed;
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
 import org.firstinspires.ftc.teamcode.robot.RobotStatus;
-import org.firstinspires.ftc.teamcode.vision.ATLivestream;
 import org.firstinspires.ftc.teamcode.util.SubsystemTemplate;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -19,6 +16,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.ArrayList;
 
 public class ATVision extends SubsystemTemplate {
+    // Made by Nicolas Silviera, changed a bit by Lakshya Khandelwal
     private Telemetry telemetry;
     private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
@@ -28,8 +26,6 @@ public class ATVision extends SubsystemTemplate {
     public static ATVision getInstance() {
         return INSTANCE;
     }
-
-    // INITIALIZE
 
     @Override
     public void onAutonomousInit() {
@@ -68,13 +64,19 @@ public class ATVision extends SubsystemTemplate {
         visionPortal = portalBuilder.build();
     }
 
-    // GETTERS
-
     public ArrayList<AprilTagDetection> getDetections() {
         return aprilTag.getDetections();
     }
 
-    // SETTERS
+    public int getID() {
+        ArrayList<AprilTagDetection> detections = getDetections();
+
+        if (!detections.isEmpty()) {
+            return detections.get(0).id; // get the ID of the first detected tag
+        } else {
+            return -1; // return -1 (or some other value) if no tags are detected
+        }
+    }
 
     public void stopStreaming() {
         visionPortal.stopStreaming();

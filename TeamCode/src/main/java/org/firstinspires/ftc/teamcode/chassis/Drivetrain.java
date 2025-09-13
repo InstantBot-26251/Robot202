@@ -20,7 +20,7 @@ public class Drivetrain extends SubsystemTemplate{
 
     private static final Drivetrain INSTANCE = new Drivetrain();
 
-    // Getting Commands
+    // Getters
 
     public static Drivetrain getInstance() {
         return INSTANCE;
@@ -57,6 +57,8 @@ public class Drivetrain extends SubsystemTemplate{
     public boolean isRobotCentric() {
         return isRobotCentric;
     }
+
+    // Setters
 
     public void setMaxPower(double power) {
         follower.setMaxPower(power);
