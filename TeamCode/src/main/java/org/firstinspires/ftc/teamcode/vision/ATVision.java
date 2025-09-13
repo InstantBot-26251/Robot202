@@ -43,11 +43,11 @@ public class ATVision extends SubsystemTemplate {
         makePortal();
     }
 
-    private void makeProcessor() {
+    public void makeProcessor() {
         aprilTag = AprilTagProcessor.easyCreateWithDefaults();
     }
 
-    private void makePortal() {
+    public void makePortal() {
         VisionPortal.Builder portalBuilder = new VisionPortal.Builder()
                 .setCamera(RobotMap.getInstance().webcam)
                 .setCameraResolution(new Size(640, 480))
