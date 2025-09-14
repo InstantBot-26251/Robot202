@@ -1,18 +1,25 @@
 package org.firstinspires.ftc.teamcode.robot;
 
+import android.webkit.WebMessage;
+
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class RobotMap {
     public HardwareMap hardwareMap;
-    private final List<HardwareDevice> devices = new ArrayList<>();
+    private final List<HardwareDevice> devicesH = new ArrayList<>();
+    private final List<WebcamName> devicesC = new ArrayList<>();
 
+
+    public WebcamName webcam;
 
     public SparkFunOTOS OTOS;
 
@@ -33,31 +40,41 @@ public class RobotMap {
     }
 
     public void init(final HardwareMap hardwareMap) {
-        devices.clear();
+        devicesH.clear();
+        devicesC.clear();
 
         this.hardwareMap = hardwareMap;
 
         OTOS = hardwareMap.get(SparkFunOTOS.class, "otos");
+
+        webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
 
         MOTOR_FL = hardwareMap.get(DcMotorEx.class, "frontLeft");
         MOTOR_FR = hardwareMap.get(DcMotorEx.class, "frontRight");
         MOTOR_BL = hardwareMap.get(DcMotorEx.class, "backLeft");
         MOTOR_BR = hardwareMap.get(DcMotorEx.class, "backRight");
 
-        addDevices();
+        addDevicesH();
+        addDevicesC();
     }
 
-    private void addDevices() {
-        devices.add(getInstance().OTOS);
-        devices.add(getInstance().MOTOR_FL);
-        devices.add(getInstance().MOTOR_FR);
-        devices.add(getInstance().MOTOR_BL);
-        devices.add(getInstance().MOTOR_BR);
+    private void addDevicesH() {
+        devicesH.add(getInstance().OTOS);
+        devicesH.add(getInstance().MOTOR_FL);
+        devicesH.add(getInstance().MOTOR_FR);
+        devicesH.add(getInstance().MOTOR_BL);
+        devicesH.add(getInstance().MOTOR_BR);
+    }
+    private void addDevicesC() {
+       devicesH.add(getInstance().webcam);
     }
 
     // Getter Methods
-    public List<HardwareDevice> getDevices() {
-        return devices;
+    public List<HardwareDevice> getDevicesH() {
+        return devicesH;
+    }
+    public List<WebcamName> getDevicesC() {
+        return devicesC;
     }
 
     public List<LynxModule> getLynxModules() {

@@ -7,7 +7,6 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.chassis.Drivetrain;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Unnamed;
 import org.firstinspires.ftc.teamcode.robot.*;
@@ -21,7 +20,7 @@ public class Drivetrain extends SubsystemTemplate{
 
     private static final Drivetrain INSTANCE = new Drivetrain();
 
-    // Getting Commands
+    // Getters
 
     public static Drivetrain getInstance() {
         return INSTANCE;
@@ -33,16 +32,16 @@ public class Drivetrain extends SubsystemTemplate{
 
     @Override
     public void onAutonomousInit() {
-//        telemetry = Unnamed.getInstance().getTelemetry();
+        telemetry = Unnamed.getInstance().getTelemetry();
         follower = Constants.createFollower(hardwareMap);
-//        follower.setPose(RobotStatus.robotPose);
+        follower.setPose(RobotStatus.robotPose);
     }
 
     @Override
     public void onTeleopInit() {
-//        telemetry = Unnamed.getInstance().getTelemetry();
+        telemetry = Unnamed.getInstance().getTelemetry();
         follower = Constants.createFollower(hardwareMap);
-//        follower.setPose(RobotStatus.robotPose);
+        follower.setPose(RobotStatus.robotPose);
         follower.startTeleopDrive();
         setMaxPower(1.0);
     }
@@ -58,6 +57,8 @@ public class Drivetrain extends SubsystemTemplate{
     public boolean isRobotCentric() {
         return isRobotCentric;
     }
+
+    // Setters
 
     public void setMaxPower(double power) {
         follower.setMaxPower(power);
@@ -99,7 +100,7 @@ public class Drivetrain extends SubsystemTemplate{
     @Override
     public void periodic() {
         follower.update();
-//        RobotStatus.robotPose = follower.getPose();
+        RobotStatus.robotPose = follower.getPose();
 
         telemetry.addData("Robot Centric", isRobotCentric());
         telemetry.addData("Path exists", follower.getCurrentPath() != null);
