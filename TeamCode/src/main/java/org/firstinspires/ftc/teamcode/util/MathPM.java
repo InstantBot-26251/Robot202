@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.util;
 public class MathPM {
     // Initially made by Claude Sonnet 4, changed and iterated on by Lakshya Khandelwal
 
-    // Gravity acceleration speed (m/s2)
+    // Gravity accel
     private static final double GRAVITY = 9.81;
 
     /**
@@ -14,8 +14,7 @@ public class MathPM {
      * @return Launch angle in degrees, or -1 if no solution exists
      */
     public static double calculateLaunchAngle(double distance, double initialVelocity, double heightDifference) {
-        // Using user's formula:
-
+        // Using my equations
         double v2 = initialVelocity * initialVelocity;
         double discriminant = v2 * v2 - GRAVITY * (GRAVITY * distance * distance + 2 * heightDifference * v2);
 
@@ -24,13 +23,13 @@ public class MathPM {
             return -1; // No solution - target is too far or velocity too low
         }
 
-        // Two possible angles - we typically want the lower one for efficiency
+        // Two possible angles - we typically want the lower one
         double angle1 = Math.atan((v2 - Math.sqrt(discriminant)) / (GRAVITY * distance));
         double angle2 = Math.atan((v2 + Math.sqrt(discriminant)) / (GRAVITY * distance));
 
         // Convert to degrees and return the lower angle
-        double angle1Deg = Math.toRadians(angle1);
-        double angle2Deg = Math.toRadians(angle2);
+        double angle1Deg = Math.toDegrees(angle1);
+        double angle2Deg = Math.toDegrees(angle2);
 
         // Return the angle that's positive and reasonable
         if (angle1Deg >= 0 && angle1Deg <= 90) {
@@ -100,22 +99,71 @@ public class MathPM {
      */
     public static boolean isShotPossible(double distance, double initialVelocity, double heightDifference) {
         double maxRange = calculateMaxRange(initialVelocity);
-        // Add some margin for height differences
+        // Add some margin for height differences (this is mostly for real world)
         double effectiveMaxRange = maxRange + Math.abs(heightDifference);
         return distance <= effectiveMaxRange;
     }
 
     /**
-     * Example usage and testing method (Courtesy of Claude Sonnet 4)
+     * Calculates ball exit velocity from flywheel parameters
+     * @param flywheelRPM Flywheel speed in revolutions per minute
+     * @param wheelDiameterMeters Flywheel diameter in meters
+     * @param slipFactor Efficiency factor accounting for slip/compression (typically 0.7-0.9)
+     * @return Estimated ball exit velocity in m/s
      */
 
+    // Courtesy of Claude Sonnet 4 (these next few methods)
+    public static double calculateExitVelocity(double flywheelRPM, double wheelDiameterMeters, double slipFactor) {
+        // Step 1: Convert RPM to angular velocity (radians per second)
+        double omega = (2 * Math.PI * flywheelRPM) / 60.0;
+
+        // Step 2: Calculate linear velocity at wheel rim
+        double radius = wheelDiameterMeters / 2.0;
+        double rimVelocity = omega * radius;
+
+        // Step 3: Apply slip factor to get realistic ball velocity
+        return rimVelocity * slipFactor;
+    }
+
+    /**
+     * Overloaded method with default slip factor of 0.8 (80% efficiency)
+     * @param flywheelRPM Flywheel speed in RPM
+     * @param wheelDiameterMeters Flywheel diameter in meters
+     * @return Estimated ball exit velocity in m/s
+     */
+    public static double calculateExitVelocity(double flywheelRPM, double wheelDiameterMeters) {
+        return calculateExitVelocity(flywheelRPM, wheelDiameterMeters, 0.8);
+    }
+
+    /**
+     * Complete shooting solution: from flywheel RPM to launch angle
+     * @param flywheelRPM Flywheel speed in RPM
+     * @param wheelDiameterMeters Flywheel diameter in meters
+     * @param slipFactor Slip factor (0.7-0.9)
+     * @param distanceToTarget Horizontal distance to target in meters
+     * @param heightDifference Height difference to target in meters
+     * @return Launch angle in degrees, or -1 if impossible
+     */
+    public static double calculateAngleFromRPM(double flywheelRPM, double wheelDiameterMeters,
+                                               double slipFactor, double distanceToTarget,
+                                               double heightDifference) {
+        double exitVelocity = calculateExitVelocity(flywheelRPM, wheelDiameterMeters, slipFactor);
+        return calculateLaunchAngle(distanceToTarget, exitVelocity, heightDifference);
+    }
+
+    /**
+     * Example usage and testing method
+     */
+    // Courtesy of Claude Sonnet 4
     public static void main(String[] args) {
-        // Example: Robot 5 meters from goal, shooting at 10 m/s
+        System.out.println("=== Shooter Math Calculator ===");
+
+        // Example 1: Direct velocity calculation
         double distance = 5.0; // meters
         double velocity = 10.0; // m/s
         double heightDiff = 0.5; // target is 0.5m higher
 
-        System.out.println("=== Shooter Angle Calculator ===");
+        System.out.println("\n--- Example 1: Direct Velocity ---");
         System.out.printf("Distance to target: %.1f m%n", distance);
         System.out.printf("Initial velocity: %.1f m/s%n", velocity);
         System.out.printf("Height difference: %.1f m%n", heightDiff);
@@ -133,6 +181,26 @@ public class MathPM {
             System.out.println("Shot not possible - increase velocity or decrease distance");
         }
 
-        System.out.printf("Maximum possible range: %.2f m%n", calculateMaxRange(velocity));
+        // Example 2: Flywheel-based calculation
+        System.out.println("\n--- Example 2: Flywheel-based ---");
+        double flywheelRPM = 3000; // RPM
+        double wheelDiameter = 0.1; // 10cm diameter wheel
+        double slipFactor = 0.8; // 80% efficiency
+
+        System.out.printf("Flywheel RPM: %.0f%n", flywheelRPM);
+        System.out.printf("Wheel diameter: %.1f cm%n", wheelDiameter * 100);
+        System.out.printf("Slip factor: %.1f%%%n", slipFactor * 100);
+
+        double exitVel = calculateExitVelocity(flywheelRPM, wheelDiameter, slipFactor);
+        System.out.printf("Calculated exit velocity: %.2f m/s%n", exitVel);
+
+        double angleFromRPM = calculateAngleFromRPM(flywheelRPM, wheelDiameter, slipFactor, distance, heightDiff);
+        if (angleFromRPM > 0) {
+            System.out.printf("Required hood angle: %.2f degrees%n", angleFromRPM);
+        } else {
+            System.out.println("Shot not possible with current flywheel settings");
+        }
+
+        System.out.printf("Maximum possible range: %.2f m%n", calculateMaxRange(exitVel));
     }
 }
