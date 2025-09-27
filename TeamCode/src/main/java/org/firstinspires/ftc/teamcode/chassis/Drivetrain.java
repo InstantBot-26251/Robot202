@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.robot.Unnamed;
 import org.firstinspires.ftc.teamcode.robot.*;
 import org.firstinspires.ftc.teamcode.util.SubsystemTemplate;
 
-public class Drivetrain extends SubsystemTemplate{
+public class Drivetrain extends SubsystemTemplate {
     Follower follower;
     Telemetry telemetry;
     boolean isRobotCentric;
@@ -30,12 +30,16 @@ public class Drivetrain extends SubsystemTemplate{
         isRobotCentric = false;
     }
 
+
+
     @Override
     public void onAutonomousInit() {
         telemetry = Unnamed.getInstance().getTelemetry();
         follower = Constants.createFollower(hardwareMap);
         follower.setPose(RobotStatus.robotPose);
     }
+
+
 
     @Override
     public void onTeleopInit() {
@@ -46,9 +50,14 @@ public class Drivetrain extends SubsystemTemplate{
         setMaxPower(1.0);
     }
 
+    // Getters
+
     public Pose getPoseEstimate() {
         return follower.getPose();
     }
+
+
+    // Checkers
 
     public boolean isBusy() {
         return follower.isBusy();
@@ -57,6 +66,7 @@ public class Drivetrain extends SubsystemTemplate{
     public boolean isRobotCentric() {
         return isRobotCentric;
     }
+
 
     // Setters
 
@@ -77,6 +87,9 @@ public class Drivetrain extends SubsystemTemplate{
         follower.setPose(new Pose(oldPose.getX(), oldPose.getY()));
     }
 
+
+    // Drive Helper Methods
+
     public void enableSlowMode() {
         m = 0.30;
     }
@@ -84,6 +97,12 @@ public class Drivetrain extends SubsystemTemplate{
     public void disableSlowMode() {
         m = 1.0;
     }
+
+    public void toggleRobotCentric() {
+        isRobotCentric = !isRobotCentric;
+    }
+    
+    // Autonomous
 
     public void followPath(Path path) {
         follower.followPath(path);
@@ -93,9 +112,6 @@ public class Drivetrain extends SubsystemTemplate{
         follower.breakFollowing();
     }
 
-    public void toggleRobotCentric() {
-        isRobotCentric = !isRobotCentric;
-    }
 
     @Override
     public void periodic() {
