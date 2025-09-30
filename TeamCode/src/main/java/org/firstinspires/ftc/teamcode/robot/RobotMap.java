@@ -18,9 +18,10 @@ public class RobotMap {
     private final List<HardwareDevice> devicesH = new ArrayList<>();
     private final List<WebcamName> devicesC = new ArrayList<>();
 
-
+    // April Tag Webcam
     public WebcamName webcam;
 
+    // OTOS
     public SparkFunOTOS OTOS;
 
     // Drive motors
@@ -28,6 +29,9 @@ public class RobotMap {
     public DcMotorEx MOTOR_FR;
     public DcMotorEx MOTOR_BL;
     public DcMotorEx MOTOR_BR;
+
+    // Shooter motor
+    public DcMotorEx SHOOTER;
 
     private static RobotMap instance = null;
 
@@ -54,6 +58,8 @@ public class RobotMap {
         MOTOR_BL = hardwareMap.get(DcMotorEx.class, "backLeft");
         MOTOR_BR = hardwareMap.get(DcMotorEx.class, "backRight");
 
+        SHOOTER = hardwareMap.get(DcMotorEx.class, "shooter");
+
         addDevicesH();
         addDevicesC();
     }
@@ -64,6 +70,7 @@ public class RobotMap {
         devicesH.add(getInstance().MOTOR_FR);
         devicesH.add(getInstance().MOTOR_BL);
         devicesH.add(getInstance().MOTOR_BR);
+        devicesH.add(getInstance().SHOOTER);
     }
     private void addDevicesC() {
        devicesH.add(getInstance().webcam);

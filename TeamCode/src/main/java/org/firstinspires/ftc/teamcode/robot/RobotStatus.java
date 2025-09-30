@@ -14,8 +14,6 @@ public class RobotStatus {
         DISABLED, AUTONOMOUS_INIT, AUTONOMOUS_ENABLED, TELEOP_INIT, TELEOP_ENABLED
     }
 
-    // Add Motif
-
     public enum Motif {
         UNKNOWN, PPG, PGP, GPP
     }

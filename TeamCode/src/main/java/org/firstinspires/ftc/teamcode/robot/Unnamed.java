@@ -52,7 +52,7 @@ public class Unnamed extends Robot {
 
     @Override
     public void reset() {
-//        RobotStatus.robotState = RobotStatus.RobotState.DISABLED;
+        RobotStatus.robotState = RobotStatus.RobotState.DISABLED;
         CommandScheduler.getInstance().reset();
         CommandScheduler.getInstance().cancelAll();
         CommandScheduler.getInstance().clearButtons();
@@ -72,7 +72,7 @@ public class Unnamed extends Robot {
     }
 
     public void disabledInit() {
-//        RobotStatus.robotState = RobotStatus.RobotState.DISABLED;
+        RobotStatus.robotState = RobotStatus.RobotState.DISABLED;
         telemetry = FtcDashboard.getInstance().getTelemetry();
         Log.i("Fieri", "===============ROBOT DISABLED===============");
     }
@@ -81,13 +81,13 @@ public class Unnamed extends Robot {
     public void autonomousInit(Telemetry telemetry, HardwareMap hardwareMap) {
         reset();
         registerSubsystems();
-//        RobotStatus.robotState = RobotStatus.RobotState.AUTONOMOUS_INIT;
+        RobotStatus.robotState = RobotStatus.RobotState.AUTONOMOUS_INIT;
 
         this.telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-//        RobotMap.getInstance().init(hardwareMap);
-//        for (LynxModule hub : RobotMap.getInstance().getLynxModules()) {
-//            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-//        }
+        RobotMap.getInstance().init(hardwareMap);
+        for (LynxModule hub : RobotMap.getInstance().getLynxModules()) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
 
         subsystems.forEach(SubsystemTemplate::onAutonomousInit);
         Log.i("Fieri", "============INITIALIZED AUTONOMOUS GOOD BOY============");
@@ -97,13 +97,13 @@ public class Unnamed extends Robot {
     public void teleopInit(Telemetry telemetry, HardwareMap hardwareMap, Gamepad drive, Gamepad manip) {
         reset();
         registerSubsystems();
-//        RobotStatus.robotState = RobotStatus.RobotState.TELEOP_INIT;
+        RobotStatus.robotState = RobotStatus.RobotState.TELEOP_INIT;
 
         this.telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-//        RobotMap.getInstance().init(hardwareMap);
-//        for (LynxModule hub : RobotMap.getInstance().getLynxModules()) {
-//            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-//            }
+        RobotMap.getInstance().init(hardwareMap);
+        for (LynxModule hub : RobotMap.getInstance().getLynxModules()) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            }
         avy = new GamepadEx(drive);
         ishu = new GamepadEx(manip);
 
@@ -158,21 +158,21 @@ public class Unnamed extends Robot {
         return telemetry;
     }
 
-//    public void periodic() {
-//        if (!RobotStatus.isEnabled() && RobotStatus.isTeleop()) RobotStatus.robotState = RobotStatus.RobotState.TELEOP_ENABLED;
-//        if (!RobotStatus.isEnabled() && !RobotStatus.isTeleop()) RobotStatus.robotState = RobotStatus.RobotState.AUTONOMOUS_ENABLED;
-//
-//        for (LynxModule hub : RobotMap.getInstance().getLynxModules()) {
-//            hub.clearBulkCache();
-//        }
-//
-//        run();
-//
-//        telemetry.addLine();
-//        telemetry.addData("Alliance", RobotStatus.alliance);
-//        telemetry.addData("Loop Time", timer.milliseconds());
-//        telemetry.addData("Status", RobotStatus.robotState);
-//        telemetry.update();
-//        timer.reset();
-//    }
+    public void periodic() {
+        if (!RobotStatus.isEnabled() && RobotStatus.isTeleop()) RobotStatus.robotState = RobotStatus.RobotState.TELEOP_ENABLED;
+        if (!RobotStatus.isEnabled() && !RobotStatus.isTeleop()) RobotStatus.robotState = RobotStatus.RobotState.AUTONOMOUS_ENABLED;
+
+        for (LynxModule hub : RobotMap.getInstance().getLynxModules()) {
+            hub.clearBulkCache();
+        }
+
+        run();
+
+        telemetry.addLine();
+        telemetry.addData("Alliance", RobotStatus.alliance);
+        telemetry.addData("Loop Time", timer.milliseconds());
+        telemetry.addData("Status", RobotStatus.robotState);
+        telemetry.update();
+        timer.reset();
+    }
 }
