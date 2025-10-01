@@ -19,6 +19,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.util.SubsystemTemplate;
 import org.firstinspires.ftc.teamcode.chassis.commands.TeleOpDriveCommand;
 import org.firstinspires.ftc.teamcode.chassis.Drivetrain;
+import org.firstinspires.ftc.teamcode.shooter.commands.ShooterCommands;
 
 
 import java.util.ArrayList;
@@ -131,11 +132,11 @@ public class Unnamed extends Robot {
 
     //MANIPULATOR CONTROLS
 
-    //Collect
+    // Collect
 
-    //Launch
+    // Shoot / Stop Shooting
 
-    //Reject
+    // Reject
 
 
 

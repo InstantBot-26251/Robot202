@@ -4,9 +4,11 @@ import android.webkit.WebMessage;
 
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
@@ -33,6 +35,8 @@ public class RobotMap {
     // Shooter motor
     public DcMotorEx SHOOTER;
 
+    // Hood servo
+    public Servo HOOD;
     private static RobotMap instance = null;
 
     // Returns an instance of this
@@ -60,6 +64,7 @@ public class RobotMap {
 
         SHOOTER = hardwareMap.get(DcMotorEx.class, "shooter");
 
+        HOOD = hardwareMap.get(Servo.class, "hood");
         addDevicesH();
         addDevicesC();
     }
@@ -71,6 +76,7 @@ public class RobotMap {
         devicesH.add(getInstance().MOTOR_BL);
         devicesH.add(getInstance().MOTOR_BR);
         devicesH.add(getInstance().SHOOTER);
+        devicesH.add(getInstance().HOOD);
     }
     private void addDevicesC() {
        devicesH.add(getInstance().webcam);
