@@ -8,7 +8,7 @@ import com.pedropathing.paths.Path;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.robot.Unnamed;
+import org.firstinspires.ftc.teamcode.robot.Enigma;
 import org.firstinspires.ftc.teamcode.robot.*;
 import org.firstinspires.ftc.teamcode.util.SubsystemTemplate;
 
@@ -34,7 +34,7 @@ public class Drivetrain extends SubsystemTemplate {
 
     @Override
     public void onAutonomousInit() {
-        telemetry = Unnamed.getInstance().getTelemetry();
+        telemetry = Enigma.getInstance().getTelemetry();
         follower = Constants.createFollower(hardwareMap);
         follower.setPose(RobotStatus.robotPose);
     }
@@ -43,7 +43,7 @@ public class Drivetrain extends SubsystemTemplate {
 
     @Override
     public void onTeleopInit() {
-        telemetry = Unnamed.getInstance().getTelemetry();
+        telemetry = Enigma.getInstance().getTelemetry();
         follower = Constants.createFollower(hardwareMap);
         follower.setPose(RobotStatus.robotPose);
         follower.startTeleopDrive();

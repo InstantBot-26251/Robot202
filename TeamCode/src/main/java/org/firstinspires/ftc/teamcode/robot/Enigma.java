@@ -4,7 +4,6 @@ import android.util.Log;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.acmerobotics.roadrunner.drive.Drive;
 import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.command.Robot;
 import com.arcrobotics.ftclib.command.button.Trigger;
@@ -16,6 +15,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.shooter.commands.ShooterCommands;
 import org.firstinspires.ftc.teamcode.util.SubsystemTemplate;
 import org.firstinspires.ftc.teamcode.chassis.commands.TeleOpDriveCommand;
 import org.firstinspires.ftc.teamcode.chassis.Drivetrain;
@@ -24,14 +24,14 @@ import org.firstinspires.ftc.teamcode.chassis.Drivetrain;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Unnamed extends Robot {
+public class Enigma extends Robot {
     private Telemetry telemetry = FtcDashboard.getInstance().getTelemetry();
 
     private final List<SubsystemTemplate> subsystems = new ArrayList<>();
 
-    private static final Unnamed INSTANCE = new Unnamed();
+    private static final Enigma INSTANCE = new Enigma();
 
-    public static Unnamed getInstance() {
+    public static Enigma getInstance() {
         return INSTANCE;
     }
 
@@ -44,7 +44,7 @@ public class Unnamed extends Robot {
 
     private final ElapsedTime timer = new ElapsedTime();
 
-    private Unnamed() {
+    private Enigma() {
         reset();
         robotInit();
         Log.i("Fieri", "===============ROBOT CREATED===============");
@@ -52,7 +52,7 @@ public class Unnamed extends Robot {
 
     @Override
     public void reset() {
-//        RobotStatus.robotState = RobotStatus.RobotState.DISABLED;
+        RobotStatus.robotState = RobotStatus.RobotState.DISABLED;
         CommandScheduler.getInstance().reset();
         CommandScheduler.getInstance().cancelAll();
         CommandScheduler.getInstance().clearButtons();
@@ -72,7 +72,7 @@ public class Unnamed extends Robot {
     }
 
     public void disabledInit() {
-//        RobotStatus.robotState = RobotStatus.RobotState.DISABLED;
+        RobotStatus.robotState = RobotStatus.RobotState.DISABLED;
         telemetry = FtcDashboard.getInstance().getTelemetry();
         Log.i("Fieri", "===============ROBOT DISABLED===============");
     }
@@ -81,13 +81,13 @@ public class Unnamed extends Robot {
     public void autonomousInit(Telemetry telemetry, HardwareMap hardwareMap) {
         reset();
         registerSubsystems();
-//        RobotStatus.robotState = RobotStatus.RobotState.AUTONOMOUS_INIT;
+        RobotStatus.robotState = RobotStatus.RobotState.AUTONOMOUS_INIT;
 
         this.telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-//        RobotMap.getInstance().init(hardwareMap);
-//        for (LynxModule hub : RobotMap.getInstance().getLynxModules()) {
-//            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-//        }
+        RobotMap.getInstance().init(hardwareMap);
+        for (LynxModule hub : RobotMap.getInstance().getLynxModules()) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
 
         subsystems.forEach(SubsystemTemplate::onAutonomousInit);
         Log.i("Fieri", "============INITIALIZED AUTONOMOUS GOOD BOY============");
@@ -97,13 +97,13 @@ public class Unnamed extends Robot {
     public void teleopInit(Telemetry telemetry, HardwareMap hardwareMap, Gamepad drive, Gamepad manip) {
         reset();
         registerSubsystems();
-//        RobotStatus.robotState = RobotStatus.RobotState.TELEOP_INIT;
+        RobotStatus.robotState = RobotStatus.RobotState.TELEOP_INIT;
 
         this.telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-//        RobotMap.getInstance().init(hardwareMap);
-//        for (LynxModule hub : RobotMap.getInstance().getLynxModules()) {
-//            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-//            }
+        RobotMap.getInstance().init(hardwareMap);
+        for (LynxModule hub : RobotMap.getInstance().getLynxModules()) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            }
         avy = new GamepadEx(drive);
         ishu = new GamepadEx(manip);
 
@@ -131,12 +131,21 @@ public class Unnamed extends Robot {
 
     //MANIPULATOR CONTROLS
 
-    //Collect
+    // Intake
+    ishu.getGamepadButton(GamepadKeys.Button.A)
+            .whenPressed(ShooterCommands.REJECT.get());
 
-    //Launch
+    // Shoot
+    ishu.getGamepadButton(GamepadKeys.Button.X)
+            .whenPressed(ShooterCommands.AUTO_AIM_AND_SHOOT.get());
 
-    //Reject
+    // Stop Shooting
+    ishu.getGamepadButton(GamepadKeys.Button.B)
+            .whenPressed(ShooterCommands.STOP.get());
 
+    // Reject
+    ishu.getGamepadButton(GamepadKeys.Button.Y)
+            .whenPressed(ShooterCommands.REJECT.get());
 
 
   Log.i("Fieri", "============INITIALIZED TELEOP I HOPE WE WON OR GOT THREE RP============");
@@ -158,21 +167,21 @@ public class Unnamed extends Robot {
         return telemetry;
     }
 
-//    public void periodic() {
-//        if (!RobotStatus.isEnabled() && RobotStatus.isTeleop()) RobotStatus.robotState = RobotStatus.RobotState.TELEOP_ENABLED;
-//        if (!RobotStatus.isEnabled() && !RobotStatus.isTeleop()) RobotStatus.robotState = RobotStatus.RobotState.AUTONOMOUS_ENABLED;
-//
-//        for (LynxModule hub : RobotMap.getInstance().getLynxModules()) {
-//            hub.clearBulkCache();
-//        }
-//
-//        run();
-//
-//        telemetry.addLine();
-//        telemetry.addData("Alliance", RobotStatus.alliance);
-//        telemetry.addData("Loop Time", timer.milliseconds());
-//        telemetry.addData("Status", RobotStatus.robotState);
-//        telemetry.update();
-//        timer.reset();
-//    }
+    public void periodic() {
+        if (!RobotStatus.isEnabled() && RobotStatus.isTeleop()) RobotStatus.robotState = RobotStatus.RobotState.TELEOP_ENABLED;
+        if (!RobotStatus.isEnabled() && !RobotStatus.isTeleop()) RobotStatus.robotState = RobotStatus.RobotState.AUTONOMOUS_ENABLED;
+
+        for (LynxModule hub : RobotMap.getInstance().getLynxModules()) {
+            hub.clearBulkCache();
+        }
+
+        run();
+
+        telemetry.addLine();
+        telemetry.addData("Alliance", RobotStatus.alliance);
+        telemetry.addData("Loop Time", timer.milliseconds());
+        telemetry.addData("Status", RobotStatus.robotState);
+        telemetry.update();
+        timer.reset();
+    }
 }

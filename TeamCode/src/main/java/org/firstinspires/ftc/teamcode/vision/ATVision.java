@@ -4,7 +4,7 @@ package org.firstinspires.ftc.teamcode.vision;
 import android.util.Size;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.robot.Unnamed;
+import org.firstinspires.ftc.teamcode.robot.Enigma;
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
 import org.firstinspires.ftc.teamcode.robot.RobotStatus;
 import org.firstinspires.ftc.teamcode.util.SubsystemTemplate;
@@ -29,7 +29,7 @@ public class ATVision extends SubsystemTemplate {
 
     @Override
     public void onAutonomousInit() {
-        telemetry = Unnamed.getInstance().getTelemetry();
+        telemetry = Enigma.getInstance().getTelemetry();
 
         makeProcessor();
         makePortal();
@@ -37,7 +37,7 @@ public class ATVision extends SubsystemTemplate {
 
     @Override
     public void onTeleopInit() {
-        telemetry = Unnamed.getInstance().getTelemetry();
+        telemetry = Enigma.getInstance().getTelemetry();
 
         makeProcessor();
         makePortal();

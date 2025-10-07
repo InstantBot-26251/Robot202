@@ -1,7 +1,6 @@
-package org.firstinspires.ftc.teamcode.util;
+package org.firstinspires.ftc.teamcode.util.math;
 
 public class MathPM {
-    // Initially made by Claude Sonnet 4, changed and iterated on by Lakshya Khandelwal
 
     // Gravity accel
     private static final double GRAVITY = 9.81;
@@ -149,6 +148,10 @@ public class MathPM {
                                                double heightDifference) {
         double exitVelocity = calculateExitVelocity(flywheelRPM, wheelDiameterMeters, slipFactor);
         return calculateLaunchAngle(distanceToTarget, exitVelocity, heightDifference);
+    }
+
+    public static double inchesToMeters(double inches) {
+        return inches * 0.0254;
     }
 
     /**
