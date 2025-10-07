@@ -1,7 +1,6 @@
-package org.firstinspires.ftc.teamcode.util.Math;
+package org.firstinspires.ftc.teamcode.util.math;
 
 public class MathPM {
-    // Initially made by Claude Sonnet 4, changed and iterated on by Lakshya Khandelwal
 
     // Gravity accel
     private static final double GRAVITY = 9.81;

@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.shooter;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
 import org.firstinspires.ftc.teamcode.util.SubsystemTemplate;
 import org.firstinspires.ftc.teamcode.util.hardware.InstantServo;
@@ -45,6 +47,7 @@ public class Hood extends SubsystemTemplate {
 
     @Override
     public void periodic() {
-        // telemetry for debugging if needed
+        telemetry.addLine();
+        telemetry.addData("Hood Angle: ", getCurrentAngle());
     }
 }

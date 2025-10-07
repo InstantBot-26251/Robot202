@@ -6,9 +6,8 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.robot.Unnamed;
+import org.firstinspires.ftc.teamcode.robot.Enigma;
 import org.firstinspires.ftc.teamcode.chassis.Drivetrain;
-import org.firstinspires.ftc.teamcode.robot.Unnamed;
 
 public class FollowPathCommand extends CommandBase {
     private final Telemetry telemetry;
@@ -21,7 +20,7 @@ public class FollowPathCommand extends CommandBase {
     }
 
     public FollowPathCommand(Path path, double maxPower) {
-        telemetry = Unnamed.getInstance().getTelemetry();
+        telemetry = Enigma.getInstance().getTelemetry();
         drivetrain = Drivetrain.getInstance();
         this.path = path;
         this.maxPower = maxPower;

@@ -1,10 +1,16 @@
 package org.firstinspires.ftc.teamcode.shooter.commands;
 
 import com.arcrobotics.ftclib.command.Command;
+
+import org.firstinspires.ftc.teamcode.shooter.Constants;
 import org.firstinspires.ftc.teamcode.shooter.Shooter;
 import org.firstinspires.ftc.teamcode.shooter.Hood;
-import org.firstinspires.ftc.teamcode.util.Math.MathPM;
+import org.firstinspires.ftc.teamcode.util.math.MathPM;
 import org.firstinspires.ftc.teamcode.util.commands.Commands;
+import org.firstinspires.ftc.teamcode.vision.ATVision;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+
+
 
 import java.util.function.Supplier;
 
@@ -12,9 +18,13 @@ public class ShooterCommands {
 
     public static final Supplier<Command> SPIN_UP;
     public static final Supplier<Command> STOP;
+    public static final Supplier<Command> SPIN_SLOW;
     public static final Supplier<Command> SET_HOOD_ANGLE;
-    public static final Supplier<Command> SHOOT_BALL;
-    public static final Supplier<Command> AUTO_AIM_AND_SHOOT;
+    public static final Supplier<Command> AUTO_AIM;
+    public static final Supplier<Command> AUTO_AIM_AND_SHOOT; // This is what Enigma needs!
+    public static final Supplier<Command> SHOOT;
+    public static final Supplier<Command> REJECT;
+
 
     static {
         Shooter shooter = Shooter.getInstance();
@@ -23,7 +33,7 @@ public class ShooterCommands {
         // Spin up shooter at fixed power
         SPIN_UP = () -> Commands.sequence(
                 Commands.runOnce(() -> shooter.setState(Shooter.ShooterState.SHOOTING)),
-                Commands.runOnce(() -> shooter.startShooting(1.0)) // full power for now
+                Commands.runOnce(() -> shooter.startShooting()) // full power for now
         );
 
         // Stop shooter
@@ -37,31 +47,44 @@ public class ShooterCommands {
                 Commands.runOnce(() -> hood.setAngle(30.0))
         );
 
-        // Fire one ball (assumes shooter already spinning & ready)
-        SHOOT_BALL = () -> Commands.sequence(
-                // TODO: add feeder command once you build feeder subsystem
-                Commands.runOnce(() -> System.out.println("Firing ball..."))
+        // Spin up shooter for rejection - ideally half power
+        SPIN_SLOW = () -> Commands.sequence(
+                Commands.runOnce(() -> shooter.setState(Shooter.ShooterState.REJECTION)),
+                Commands.runOnce(() -> shooter.startShooting(0.5)) // TODO: Test and Tune (TAT)
         );
 
         // Automatically calculate hood angle + spin up + shoot
-        AUTO_AIM_AND_SHOOT = () -> Commands.sequence(
+        AUTO_AIM = () -> Commands.sequence(
                 Commands.runOnce(() -> {
-                    // Example: use math to compute angle
-                    double distance = MathPM.inchesToMeters(5.0); // TODO: measure from vision
-                    double heightDiff = 0.5;
-                    double flywheelRPM = 3000;
+                    double distance = 0;
+
+                    // Get detections from ATVision
+                    if (ATVision.getInstance() != null
+                            && !ATVision.getInstance().getDetections().isEmpty()) {
+
+                        // Grab the first detected tag
+                        AprilTagDetection best = ATVision.getInstance().getDetections().get(0);
+
+                        if (best != null && best.ftcPose != null) {
+                            double dist = best.ftcPose.range;
+
+                            // Convert to meters
+                            distance = MathPM.inchesToMeters(dist);
+
+                        }
+                    }
+                    double heightDiff = 0.5; // TODO: measure
+                    double flywheelRPM = 3000; // TODO: measure
                     double wheelDiameter = MathPM.inchesToMeters(0.1); // TODO: measure
 
                     double angle = MathPM.calculateAngleFromRPM(
                             flywheelRPM, wheelDiameter, 0.8, distance, heightDiff
-                    );
+                    ); // TODO: fudge the values (TAT)
 
                     hood.setAngle(angle);
-                }),
-                Commands.defer(SPIN_UP),    // spin shooter
-                Commands.waitMillis(500),   // wait for shooter to reach speed (tune)
-                Commands.defer(SHOOT_BALL), // release one ball
-                Commands.defer(STOP)        // stop shooter
+
+                    Commands.runOnce(() -> shooter.startShooting(1.0));
+                })
         );
     }
-}
+    }

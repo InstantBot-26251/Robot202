@@ -4,7 +4,6 @@ import android.util.Log;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.acmerobotics.roadrunner.drive.Drive;
 import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.command.Robot;
 import com.arcrobotics.ftclib.command.button.Trigger;
@@ -16,23 +15,23 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.shooter.commands.ShooterCommands;
 import org.firstinspires.ftc.teamcode.util.SubsystemTemplate;
 import org.firstinspires.ftc.teamcode.chassis.commands.TeleOpDriveCommand;
 import org.firstinspires.ftc.teamcode.chassis.Drivetrain;
-import org.firstinspires.ftc.teamcode.shooter.commands.ShooterCommands;
 
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Unnamed extends Robot {
+public class Enigma extends Robot {
     private Telemetry telemetry = FtcDashboard.getInstance().getTelemetry();
 
     private final List<SubsystemTemplate> subsystems = new ArrayList<>();
 
-    private static final Unnamed INSTANCE = new Unnamed();
+    private static final Enigma INSTANCE = new Enigma();
 
-    public static Unnamed getInstance() {
+    public static Enigma getInstance() {
         return INSTANCE;
     }
 
@@ -45,7 +44,7 @@ public class Unnamed extends Robot {
 
     private final ElapsedTime timer = new ElapsedTime();
 
-    private Unnamed() {
+    private Enigma() {
         reset();
         robotInit();
         Log.i("Fieri", "===============ROBOT CREATED===============");
@@ -135,7 +134,8 @@ public class Unnamed extends Robot {
     // Collect
 
     // Shoot / Stop Shooting
-
+        ishu.getGamepadButton(GamepadKeys.Button.X)
+                .whenPressed(ShooterCommands.AUTO_AIM_AND_SHOOT.get());
     // Reject
 
 
