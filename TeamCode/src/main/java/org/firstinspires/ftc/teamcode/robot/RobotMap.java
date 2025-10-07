@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.robot;
 import android.webkit.WebMessage;
 
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -21,7 +22,7 @@ public class RobotMap {
     private final List<WebcamName> devicesC = new ArrayList<>();
 
     // April Tag Webcam
-    public WebcamName webcam;
+    public WebcamName WEBCAM;
 
     // OTOS
     public SparkFunOTOS OTOS;
@@ -37,6 +38,16 @@ public class RobotMap {
 
     // Hood servo
     public Servo HOOD;
+
+    // Color Sensors
+    public RevColorSensorV3 COLOR1;
+    public RevColorSensorV3 COLOR2;
+    public RevColorSensorV3 COLOR3;
+    public RevColorSensorV3 COLOR4;
+    public RevColorSensorV3 COLOR5;
+    public RevColorSensorV3 COLOR6;
+    public RevColorSensorV3 COLOR7;
+
     private static RobotMap instance = null;
 
     // Returns an instance of this
@@ -55,7 +66,7 @@ public class RobotMap {
 
         OTOS = hardwareMap.get(SparkFunOTOS.class, "otos");
 
-        webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
+        WEBCAM = hardwareMap.get(WebcamName.class, "Webcam 1");
 
         MOTOR_FL = hardwareMap.get(DcMotorEx.class, "frontLeft");
         MOTOR_FR = hardwareMap.get(DcMotorEx.class, "frontRight");
@@ -65,6 +76,14 @@ public class RobotMap {
         SHOOTER = hardwareMap.get(DcMotorEx.class, "shooter");
 
         HOOD = hardwareMap.get(Servo.class, "hood");
+
+        COLOR1 = hardwareMap.get(RevColorSensorV3.class, "color1");
+        COLOR2 = hardwareMap.get(RevColorSensorV3.class, "color2");
+        COLOR3 = hardwareMap.get(RevColorSensorV3.class, "color3");
+        COLOR4 = hardwareMap.get(RevColorSensorV3.class, "color4");
+        COLOR5 = hardwareMap.get(RevColorSensorV3.class, "color5");
+        COLOR6 = hardwareMap.get(RevColorSensorV3.class, "color6");
+
         addDevicesH();
         addDevicesC();
     }
@@ -77,9 +96,15 @@ public class RobotMap {
         devicesH.add(getInstance().MOTOR_BR);
         devicesH.add(getInstance().SHOOTER);
         devicesH.add(getInstance().HOOD);
+        devicesH.add(getInstance().COLOR1);
+        devicesH.add(getInstance().COLOR2);
+        devicesH.add(getInstance().COLOR3);
+        devicesH.add(getInstance().COLOR4);
+        devicesH.add(getInstance().COLOR5);
+        devicesH.add(getInstance().COLOR6);
     }
     private void addDevicesC() {
-       devicesH.add(getInstance().webcam);
+       devicesH.add(getInstance().WEBCAM);
     }
 
     // Getter Methods
