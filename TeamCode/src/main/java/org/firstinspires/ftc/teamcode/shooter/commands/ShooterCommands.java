@@ -1,8 +1,15 @@
 package org.firstinspires.ftc.teamcode.shooter.commands;
 
+import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.DEFAULT_HEIGHT_DIFF;
+import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.DRAG_COEFFICIENT;
+import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.FLYWHEEL_RPM;
+import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.FLYWHEEL_SPINUP_TIME;
+import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.FULL_POWER;
+import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.TEST_HOOD_ANGLE;
+import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.WHEEL_DIAMETER;
+
 import com.arcrobotics.ftclib.command.Command;
 
-import org.firstinspires.ftc.teamcode.shooter.Constants;
 import org.firstinspires.ftc.teamcode.shooter.Shooter;
 import org.firstinspires.ftc.teamcode.shooter.Hood;
 import org.firstinspires.ftc.teamcode.util.math.MathPM;
@@ -33,7 +40,7 @@ public class ShooterCommands {
         // Spin up shooter at fixed power
         SPIN_UP = () -> Commands.sequence(
                 Commands.runOnce(() -> shooter.setState(Shooter.ShooterState.SHOOTING)),
-                Commands.runOnce(() -> shooter.startShooting()) // full power for now
+                Commands.runOnce(() -> shooter.startShooting(1)) // full power for now
         );
 
         // Stop shooter
@@ -53,8 +60,32 @@ public class ShooterCommands {
                 Commands.runOnce(() -> shooter.startShooting(0.5)) // TODO: Test and Tune (TAT)
         );
 
-        // Automatically calculate hood angle + spin up + shoot
+
+        // Automatically calculate hood angle based on AprilTag distance and spin up
         AUTO_AIM = () -> Commands.sequence(
+                Commands.runOnce(() -> {
+                    double distance = getTargetDistance();
+
+                    if (distance <= 0) {
+                        // No valid target detected, use default angle
+                        System.out.println("Warning: No valid target detected for auto-aim");
+                        hood.setAngle(TEST_HOOD_ANGLE); // fallback angle
+                    } else {
+                        double angle = MathPM.calculateAngleFromRPM(
+                                FLYWHEEL_RPM,
+                                WHEEL_DIAMETER,
+                                DRAG_COEFFICIENT,
+                                distance,
+                                DEFAULT_HEIGHT_DIFF
+                        );
+                        hood.setAngle(angle);
+                    }
+                }),
+                Commands.runOnce(() -> shooter.startShooting(FULL_POWER))
+        );
+
+        // Automatically calculate hood angle + spin up + shoot
+        AUTO_AIM_AND_SHOOT = () -> Commands.sequence(
                 Commands.runOnce(() -> {
                     double distance = 0;
 
@@ -86,5 +117,35 @@ public class ShooterCommands {
                     Commands.runOnce(() -> shooter.startShooting(1.0));
                 })
         );
+
+        SHOOT = () -> Commands.sequence(
+                SPIN_UP.get(),
+                Commands.waitSeconds(FLYWHEEL_SPINUP_TIME)
+                // TODO: Add actual shooting mechanism trigger here when ready
+        );
+
+        REJECT = () -> SPIN_SLOW.get();
+
     }
+
+    /**
+     * Gets the distance to the target using AprilTag detection
+     * @return distance in meters, or 0 if no valid detection
+     */
+    private static double getTargetDistance() {
+        ATVision vision = ATVision.getInstance();
+
+        if (vision == null || vision.getDetections().isEmpty()) {
+            return 0;
+        }
+
+        AprilTagDetection bestTag = vision.getDetections().get(0);
+
+        if (bestTag == null || bestTag.ftcPose == null) {
+            return 0;
+        }
+
+        return MathPM.inchesToMeters(bestTag.ftcPose.range);
+    }
+
     }

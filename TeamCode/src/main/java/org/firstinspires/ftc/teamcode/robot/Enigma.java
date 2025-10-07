@@ -131,13 +131,21 @@ public class Enigma extends Robot {
 
     //MANIPULATOR CONTROLS
 
-    // Collect
+    // Intake
+    ishu.getGamepadButton(GamepadKeys.Button.A)
+            .whenPressed(ShooterCommands.REJECT.get());
 
-    // Shoot / Stop Shooting
-        ishu.getGamepadButton(GamepadKeys.Button.X)
-                .whenPressed(ShooterCommands.AUTO_AIM_AND_SHOOT.get());
+    // Shoot
+    ishu.getGamepadButton(GamepadKeys.Button.X)
+            .whenPressed(ShooterCommands.AUTO_AIM_AND_SHOOT.get());
+
+    // Stop Shooting
+    ishu.getGamepadButton(GamepadKeys.Button.B)
+            .whenPressed(ShooterCommands.STOP.get());
+
     // Reject
-
+    ishu.getGamepadButton(GamepadKeys.Button.Y)
+            .whenPressed(ShooterCommands.REJECT.get());
 
 
   Log.i("Fieri", "============INITIALIZED TELEOP I HOPE WE WON OR GOT THREE RP============");
