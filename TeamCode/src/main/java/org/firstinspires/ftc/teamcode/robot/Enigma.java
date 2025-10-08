@@ -15,6 +15,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.indexer.Indexer;
+import org.firstinspires.ftc.teamcode.shooter.Shooter;
 import org.firstinspires.ftc.teamcode.shooter.commands.ShooterCommands;
 import org.firstinspires.ftc.teamcode.util.SubsystemTemplate;
 import org.firstinspires.ftc.teamcode.chassis.commands.TeleOpDriveCommand;
@@ -68,6 +70,8 @@ public class Enigma extends Robot {
     private void robotInit() {
         subsystems.clear();
         subsystems.add(Drivetrain.getInstance().initialize());
+        subsystems.add(Indexer.getInstance().initialize());
+        subsystems.add(Shooter.getInstance().initialize());
         registerSubsystems();
     }
 
