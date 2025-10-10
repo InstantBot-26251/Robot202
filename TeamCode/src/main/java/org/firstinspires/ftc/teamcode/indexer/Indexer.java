@@ -12,12 +12,14 @@ import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_I
 
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.indexer.Enums.IndexerState;
 import org.firstinspires.ftc.teamcode.indexer.Enums.BallColor;
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
 import org.firstinspires.ftc.teamcode.util.SubsystemTemplate;
+import org.firstinspires.ftc.teamcode.util.hardware.InstantMotor;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +27,7 @@ import java.util.Map;
 public class Indexer extends SubsystemTemplate {
 
     // Hardware - 6 color sensors total (2 per slot as redundant backups)
-    private CRServo rotorServo;
+    private DcMotorEx rotorMotor;
     private Servo gateServo;
 
     // Slot 0 sensors (both scan same position)
@@ -70,7 +72,7 @@ public class Indexer extends SubsystemTemplate {
         RobotMap map = RobotMap.getInstance();
 
         // Get hardware directly from RobotMap
-        rotorServo = map.INDEXER_ROTOR;
+        rotorMotor = map.INDEXER_ROTOR;
         gateServo = map.INDEXER_GATE;
 
         // Map color sensors to indexer slots
@@ -344,7 +346,7 @@ public class Indexer extends SubsystemTemplate {
         return !slots.get(currentSlot).hasConfirmedBall;
     }
 
-    //-----------------------ROTOR CONTROL--------------------------------//
+    //-----------------------rotorMotor CONTROL--------------------------------//
     /**
      * Rotates to the next slot (advances by 1)
      */
@@ -352,7 +354,7 @@ public class Indexer extends SubsystemTemplate {
         if (!isCalibrated) return;
 
         state = IndexerState.ROTATING;
-        rotorServo.setPower(ROTOR_INDEX_SPEED);
+        rotorMotor.setPower(ROTOR_INDEX_SPEED);
 
         // Update current slot
         currentSlot = (currentSlot + 1) % 3;
@@ -376,7 +378,7 @@ public class Indexer extends SubsystemTemplate {
         }
 
         // Start rotation
-        rotorServo.setPower(ROTOR_INDEX_SPEED);
+        rotorMotor.setPower(ROTOR_INDEX_SPEED);
         currentSlot = targetSlot;
 
         System.out.println("Rotating to slot " + targetSlot);
@@ -391,14 +393,14 @@ public class Indexer extends SubsystemTemplate {
     }
 
     public void stopRotor() {
-        rotorServo.setPower(0);
+        rotorMotor.setPower(0);
         if (state == IndexerState.ROTATING) {
             state = IndexerState.IDLE;
         }
     }
 
     /**
-     * Checks if rotor has finished rotating
+     * Checks if rotorMotor has finished rotating
      * In real implementation, check encoder position
      */
     public boolean isRotationComplete() {
@@ -427,7 +429,7 @@ public class Indexer extends SubsystemTemplate {
     public void dispenseBall() {
         state = IndexerState.DISPENSING;
         openGate();
-        rotorServo.setPower(ROTOR_DISPENSE_SPEED);
+        rotorMotor.setPower(ROTOR_DISPENSE_SPEED);
     }
 
     /**

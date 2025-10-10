@@ -40,7 +40,7 @@ public class RobotMap {
     public Servo HOOD;
 
     // Indexer hardware
-    public CRServo INDEXER_ROTOR;
+    public DcMotorEx INDEXER_ROTOR;
     public Servo INDEXER_GATE;
 
     // Color Sensors
@@ -82,7 +82,7 @@ public class RobotMap {
         HOOD = hardwareMap.get(Servo.class, "hood");
 
         // Indexer
-        INDEXER_ROTOR = hardwareMap.get(CRServo.class, "indexerRotor");
+        INDEXER_ROTOR = hardwareMap.get(DcMotorEx.class, "indexerRotor");
         INDEXER_GATE = hardwareMap.get(Servo.class, "indexerGate");
 
         COLOR1 = hardwareMap.get(RevColorSensorV3.class, "color1");

@@ -8,6 +8,7 @@ import static org.firstinspires.ftc.teamcode.indexer.commands.CommandsConstants.
 import static org.firstinspires.ftc.teamcode.indexer.commands.CommandsConstants.VERIFICATION_DELAY;
 
 import com.arcrobotics.ftclib.command.Command;
+
 import org.firstinspires.ftc.teamcode.indexer.Indexer;
 import org.firstinspires.ftc.teamcode.indexer.Enums.BallColor;
 import org.firstinspires.ftc.teamcode.indexer.Enums.IndexerState;
@@ -34,9 +35,7 @@ public class IndexerCommands {
 
         //-----------------------CALIBRATION------------------------------//
 
-        /**
-         * Calibrates the indexer rotor position
-         */
+        // Calibrates the indexer rotor position
         CALIBRATE = () -> Commands.sequence(
                 Commands.runOnce(() -> {
                     System.out.println("Starting indexer calibration...");
@@ -55,9 +54,8 @@ public class IndexerCommands {
 
         //----------------------ROTATION-------------------------------------------//
 
-        /**
-         * Rotates to the next slot
-         */
+        // Rotates to the next slot
+
         ROTATE_NEXT = () -> Commands.sequence(
                 Commands.runOnce(() -> {
                     System.out.println("Rotating to next slot...");
@@ -72,8 +70,8 @@ public class IndexerCommands {
 
         //---------------------------------------BALL INTAKE/INDEXING-----------------------//
 
-        /**
-         * Indexes a single ball into the current slot:
+        /*
+         * Indexes a single ball into the current slot. Algorithm:
          * 1. Wait for ball to fully enter current slot (both sensors detect)
          * 2. Detect and log ball color
          * 3. Rotate to next slot if not full
@@ -130,20 +128,15 @@ public class IndexerCommands {
 
         //------------------------PREPARE SPECIFIC COLOR---------------------//
 
-        /**
-         * Rotates indexer to position green ball at current slot for dispensing
-         */
+        // Rotates indexer to position green ball at current slot for dispensing
         PREPARE_GREEN_BALL = () -> prepareBall(BallColor.GREEN);
 
-        /**
-         * Rotates indexer to position green ball at current slot for dispensing
-         */
+        // Rotates indexer to position purple ball at current slot for dispensing
+
         PREPARE_PURPLE_BALL = () -> prepareBall(BallColor.PURPLE);
         //----------------------DISPENSING-----------------------//
 
-        /**
-         * Dispenses the ball from the current slot
-         */
+        // Dispenses the ball from the current slot
         DISPENSE = () -> Commands.sequence(
                 Commands.runOnce(() -> {
                     int slot = indexer.getCurrentSlot();
@@ -184,25 +177,21 @@ public class IndexerCommands {
                 Commands.runOnce(indexer::closeGate)
         );
 
-        /**
-         * Full sequence: prepare and dispense green ball
-         */
+        // Full sequence: prepare and dispense green ball
         DISPENSE_GREEN = () -> Commands.sequence(
                 PREPARE_GREEN_BALL.get(),
                 DISPENSE.get()
         );
 
-        /**
-         * Full sequence: prepare and dispense purple ball
-         */
+        // Full sequence: prepare and dispense purple ball
         DISPENSE_PURPLE = () -> Commands.sequence(
-                PREPARE_GREEN_BALL.get(),
+                PREPARE_PURPLE_BALL.get(),
                 DISPENSE.get()
         );
 
         //---------------------REJECTION-------------------
 
-        /**
+        /* Rejection Algorithm:
          * Rejects the ball from the current slot
          * Opens gate and reverses rotation to eject ball
          */
@@ -213,42 +202,64 @@ public class IndexerCommands {
                     System.out.println("Rejecting " + color + " ball from slot " + slot + "...");
                     indexer.setState(IndexerState.REJECTING);
                 }),
+                // Snapshot the slot we intend to eject
+                Commands.runOnce(() -> indexer.getSlot(indexer.getCurrentSlot())),
+                Commands.defer(() -> {
+                    final int snapshotSlot = indexer.getCurrentSlot();
+                    return Commands.sequence(
+                            // Open gate
+                            Commands.runOnce(indexer::openGate),
+                            Commands.waitSeconds(GATE_DELAY),
 
-                // Open gate
-                Commands.runOnce(indexer::openGate),
-                Commands.waitSeconds(GATE_DELAY),
+                            // Rotate backwards to eject
+                            Commands.runOnce(() -> indexer.rotateBySlots(-1)),
+                            Commands.waitSeconds(REJECT_DURATION),
+                            Commands.runOnce(indexer::stopRotor),
+                            Commands.waitSeconds(VERIFICATION_DELAY),
 
-                // Rotate backwards to eject
-                Commands.runOnce(() -> indexer.rotateBySlots(-1)),
-                Commands.waitSeconds(REJECT_DURATION),
+                            // verify the ball in the og slot was actually ejected
+                            Commands.runOnce(() -> {
+                                if (indexer.isBallInSlot(snapshotSlot)) {
+                                    System.out.println("WARNING: Ball still in slot " + snapshotSlot + " after rejection!");
+                                    indexer.setState(IndexerState.ERROR);
+                                } else {
+                                    System.out.println("Ball rejected successfully from slot " + snapshotSlot);
+                                    indexer.getSlot(snapshotSlot).clear();
+                                    indexer.setState(IndexerState.IDLE);
+                                }
+                            }),
 
-                // Stop and verify
-                Commands.runOnce(indexer::stopRotor),
-                Commands.waitSeconds(VERIFICATION_DELAY),
 
-                Commands.runOnce(() -> {
-                    int slot = indexer.getCurrentSlot();
+                            // Stop and verify
+                            Commands.runOnce(indexer::stopRotor),
+                            Commands.waitSeconds(VERIFICATION_DELAY),
 
-                    if (indexer.isBallInSlot(slot)) {
-                        System.out.println("WARNING: Ball still in slot " + slot + " after rejection attempt!");
-                        indexer.setState(IndexerState.ERROR);
-                    } else {
-                        System.out.println("Ball rejected successfully from slot " + slot);
-                        indexer.getSlot(slot).clear();
-                        indexer.setState(IndexerState.IDLE);
-                    }
-                }),
+                            Commands.runOnce(() -> {
+                                int slot = indexer.getCurrentSlot();
 
-                // Close gate and rotate back
-                Commands.runOnce(indexer::closeGate),
-                Commands.runOnce(() -> indexer.rotateBySlots(1))
+                                if (indexer.isBallInSlot(slot)) {
+                                    System.out.println("WARNING: Ball still in slot " + slot + " after rejection attempt!");
+                                    indexer.setState(IndexerState.ERROR);
+                                } else {
+                                    System.out.println("Ball rejected successfully from slot " + slot);
+                                    indexer.getSlot(slot).clear();
+                                    indexer.setState(IndexerState.IDLE);
+                                }
+                            }),
+
+                            // close gate and return precisely to the original alignment
+                            Commands.runOnce(indexer::closeGate),
+                            Commands.runOnce(() -> indexer.rotateToSlot(snapshotSlot)),
+                            Commands.waitSeconds(ROTATION_DURATION),
+                            Commands.runOnce(indexer::stopRotor)
+                    );
+                })
         );
 
         //---------------------UTIL.---------------------------------//
 
-        /**
-         * Stops all indexer motion immediately
-         */
+        // Stops all indexer motion immediately
+
         STOP = () -> Commands.runOnce(() -> {
             indexer.stopRotor();
             indexer.closeGate();
@@ -256,9 +267,8 @@ public class IndexerCommands {
             System.out.println("Indexer stopped");
         });
 
-        /**
-         * Resets indexer to initial state and recalibrates
-         */
+        // Resets indexer to initial state and recalibrates
+
         RESET = () -> Commands.sequence(
                 Commands.runOnce(() -> System.out.println("Resetting indexer...")),
                 Commands.runOnce(indexer::reset),
@@ -269,55 +279,57 @@ public class IndexerCommands {
 
     //--------------------------------HELPER METHODS--------------------------------//
 
-    /**
-     * Helper method to prepare a ball of specific color for dispensing
-     */
+    // Helper method to prepare a ball of specific color for dispensing
     private static Command prepareBall(BallColor targetColor) {
         Indexer indexer = Indexer.getInstance();
 
-        return Commands.sequence(
-                Commands.runOnce(() -> {
-                    System.out.println("Searching for " + targetColor + " ball...");
+        int targetSlot = indexer.findBallSlot(targetColor);
+        int currentSlot = indexer.getCurrentSlot();
 
-                    // Find the slot containing target color
-                    int slot = indexer.findBallSlot(targetColor);
-
-                    if (slot == -1) {
+        if (targetSlot == -1) {
+            return Commands.sequence(
+                    Commands.runOnce(() -> {
                         System.out.println("ERROR: No " + targetColor + " ball found in indexer!");
                         System.out.println("Available balls:");
                         for (int i = 0; i < 3; i++) {
                             System.out.println("  Slot " + i + ": " + indexer.getSlot(i));
                         }
                         indexer.setState(IndexerState.ERROR);
-                        return;
-                    }
+                    })
+            );
+        }
 
-                    System.out.println(targetColor + " ball found in slot " + slot);
+        // Steps to rotate (0, 1, or 2). If 0, we'll still dwell for one ROTATION_DURATION.
+        int steps = (targetSlot - currentSlot + 3) % 3;
+        double rotationWaitSeconds = ROTATION_DURATION * (steps == 0 ? 1 : steps);
 
-                    // Rotate to that slot if not already there
-                    if (indexer.getCurrentSlot() != slot) {
-                        System.out.println("Rotating from slot " + indexer.getCurrentSlot() + " to slot " + slot);
-                        indexer.rotateToSlot(slot);
+        return Commands.sequence(
+                Commands.runOnce(() -> {
+                    System.out.println("Searching for " + targetColor + " ball...");
+                    if (currentSlot != targetSlot) {
+                        System.out.println("Rotating from slot " + currentSlot + " to slot " + targetSlot + " (" + steps + " step"
+                                + (steps == 1 ? "" : "s") + ")");
+                        indexer.rotateToSlot(targetSlot);
                     } else {
-                        System.out.println("Already at correct slot " + slot);
+                        System.out.println("Already at correct slot " + targetSlot);
                     }
                 }),
 
-                // Wait for rotation to complete
-                Commands.waitSeconds(ROTATION_DURATION * 2), // Allow time for rotation
+                // wait proportional to number of steps (or one duration if already aligned)
+                Commands.waitSeconds(rotationWaitSeconds),
+
                 Commands.runOnce(indexer::stopRotor),
                 Commands.waitSeconds(VERIFICATION_DELAY),
 
                 // Verify correct color at current slot
                 Commands.runOnce(() -> {
-                    int currentSlot = indexer.getCurrentSlot();
-                    BallColor detectedColor = indexer.detectColorInSlot(currentSlot);
-
-                    if (detectedColor == targetColor) {
-                        System.out.println("Confirmed: " + targetColor + " ball ready at slot " + currentSlot);
+                    int s = indexer.getCurrentSlot();
+                    BallColor detected = indexer.detectColorInSlot(s);
+                    if (detected == targetColor) {
+                        System.out.println("Confirmed: " + targetColor + " ball ready at slot " + s);
                         indexer.setState(IndexerState.IDLE);
                     } else {
-                        System.out.println("WARNING: Expected " + targetColor + " but detected " + detectedColor + " at slot " + currentSlot);
+                        System.out.println("WARNING: Expected " + targetColor + " but detected " + detected + " at slot " + s);
                         System.out.println("Ball tracking may be out of sync. Consider resetting indexer.");
                         indexer.setState(IndexerState.ERROR);
                     }

@@ -12,6 +12,7 @@ import com.arcrobotics.ftclib.command.Command;
 
 import org.firstinspires.ftc.teamcode.shooter.Shooter;
 import org.firstinspires.ftc.teamcode.shooter.Hood;
+import org.firstinspires.ftc.teamcode.shooter.ShooterState;
 import org.firstinspires.ftc.teamcode.util.math.MathPM;
 import org.firstinspires.ftc.teamcode.util.commands.Commands;
 import org.firstinspires.ftc.teamcode.vision.ATVision;
@@ -39,14 +40,14 @@ public class ShooterCommands {
 
         // Spin up shooter at fixed power
         SPIN_UP = () -> Commands.sequence(
-                Commands.runOnce(() -> shooter.setState(Shooter.ShooterState.SHOOTING)),
+                Commands.runOnce(() -> shooter.setState(ShooterState.SHOOTING)),
                 Commands.runOnce(() -> shooter.startShooting(1)) // full power for now
         );
 
         // Stop shooter
         STOP = () -> Commands.sequence(
                 Commands.runOnce(shooter::stopShooting),
-                Commands.runOnce(() -> shooter.setState(Shooter.ShooterState.RESTING))
+                Commands.runOnce(() -> shooter.setState(ShooterState.RESTING))
         );
 
         // Adjust hood angle (30 deg for testing)
@@ -56,7 +57,7 @@ public class ShooterCommands {
 
         // Spin up shooter for rejection - ideally half power
         SPIN_SLOW = () -> Commands.sequence(
-                Commands.runOnce(() -> shooter.setState(Shooter.ShooterState.REJECTION)),
+                Commands.runOnce(() -> shooter.setState(ShooterState.REJECTION)),
                 Commands.runOnce(() -> shooter.startShooting(0.25)) // TODO: Test and Tune (TAT)
         );
 
