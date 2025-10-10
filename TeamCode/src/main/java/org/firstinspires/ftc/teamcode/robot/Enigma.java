@@ -49,7 +49,7 @@ public class Enigma extends Robot {
     private Enigma() {
         reset();
         robotInit();
-        Log.i("Fieri", "===============ROBOT CREATED===============");
+        Log.i("Enigma", "===============ROBOT CREATED===============");
     }
 
     @Override
@@ -58,7 +58,7 @@ public class Enigma extends Robot {
         CommandScheduler.getInstance().reset();
         CommandScheduler.getInstance().cancelAll();
         CommandScheduler.getInstance().clearButtons();
-        Log.i("Fieri", "===============COMMAND SCHEDULER CLEARED AURA HAS INCREASED===============");
+        Log.i("Enigma", "===============COMMAND SCHEDULER CLEARED AURA HAS INCREASED===============");
     }
 
     private void registerSubsystems() {
@@ -70,7 +70,7 @@ public class Enigma extends Robot {
     private void robotInit() {
         subsystems.clear();
         subsystems.add(Drivetrain.getInstance().initialize());
-        subsystems.add(Indexer.getInstance().initialize());
+//        subsystems.add(Indexer.getInstance().initialize());
         subsystems.add(Shooter.getInstance().initialize());
         registerSubsystems();
     }
@@ -78,7 +78,7 @@ public class Enigma extends Robot {
     public void disabledInit() {
         RobotStatus.robotState = RobotStatus.RobotState.DISABLED;
         telemetry = FtcDashboard.getInstance().getTelemetry();
-        Log.i("Fieri", "===============ROBOT DISABLED===============");
+        Log.i("Enigma", "===============ROBOT DISABLED===============");
     }
 
     // Auto INIT
@@ -94,7 +94,7 @@ public class Enigma extends Robot {
         }
 
         subsystems.forEach(SubsystemTemplate::onAutonomousInit);
-        Log.i("Fieri", "============INITIALIZED AUTONOMOUS GOOD BOY============");
+        Log.i("Enigma", "============INITIALIZED AUTONOMOUS GOOD BOY============");
     }
 
     // TeleOp INIT
@@ -139,9 +139,12 @@ public class Enigma extends Robot {
     ishu.getGamepadButton(GamepadKeys.Button.A)
             .whenPressed(ShooterCommands.REJECT.get());
 
-    // Shoot
+//    // Shoot
+//    ishu.getGamepadButton(GamepadKeys.Button.X)
+//            .whenPressed(ShooterCommands.AUTO_AIM_AND_SHOOT.get());
+    // Testing
     ishu.getGamepadButton(GamepadKeys.Button.X)
-            .whenPressed(ShooterCommands.AUTO_AIM_AND_SHOOT.get());
+                    .whenPressed(ShooterCommands.SPIN_UP.get());
 
     // Stop Shooting
     ishu.getGamepadButton(GamepadKeys.Button.B)
@@ -152,7 +155,7 @@ public class Enigma extends Robot {
             .whenPressed(ShooterCommands.REJECT.get());
 
 
-  Log.i("Fieri", "============INITIALIZED TELEOP I HOPE WE WON OR GOT THREE RP============");
+  Log.i("Enigma", "============INITIALIZED TELEOP I HOPE WE WON OR GOT THREE RP============");
 }
 
     // Response Curve Method
