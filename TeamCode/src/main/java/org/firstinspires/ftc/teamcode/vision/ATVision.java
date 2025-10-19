@@ -1,6 +1,11 @@
 
 package org.firstinspires.ftc.teamcode.vision;
 
+import static org.firstinspires.ftc.teamcode.vision.VisionConstants.arducam_cx;
+import static org.firstinspires.ftc.teamcode.vision.VisionConstants.arducam_cy;
+import static org.firstinspires.ftc.teamcode.vision.VisionConstants.arducam_fx;
+import static org.firstinspires.ftc.teamcode.vision.VisionConstants.arducam_fy;
+
 import android.util.Size;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -44,12 +49,14 @@ public class ATVision extends SubsystemTemplate {
     }
 
     public void makeProcessor() {
-        aprilTag = AprilTagProcessor.easyCreateWithDefaults();
+        aprilTag = new AprilTagProcessor.Builder()
+                .setLensIntrinsics(arducam_fx, arducam_fy, arducam_cx, arducam_cy)
+                .build();
     }
 
     public void makePortal() {
         VisionPortal.Builder portalBuilder = new VisionPortal.Builder()
-                .setCamera(RobotMap.getInstance().webcam)
+                .setCamera(RobotMap.getInstance().WEBCAM)
                 .setCameraResolution(new Size(640, 480))
                 .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
                 .enableLiveView(RobotStatus.liveView)

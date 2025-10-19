@@ -16,6 +16,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.indexer.Indexer;
+import org.firstinspires.ftc.teamcode.shooter.Hood;
 import org.firstinspires.ftc.teamcode.shooter.Shooter;
 import org.firstinspires.ftc.teamcode.shooter.commands.ShooterCommands;
 import org.firstinspires.ftc.teamcode.util.SubsystemTemplate;
@@ -41,6 +42,7 @@ public class Enigma extends Robot {
     private GamepadEx ishu;
 
     private static final double D_RESPONSE_CURVE = 1.5;
+    private static final double M_RESPONSE_CURVE = 1.5;
     private static final double ROTATIONAL_SENSITIVITY = 1.5;
     private static final double TRIGGER_DEADZONE = 0.1;
 
@@ -69,9 +71,10 @@ public class Enigma extends Robot {
 
     private void robotInit() {
         subsystems.clear();
-        subsystems.add(Drivetrain.getInstance().initialize());
+//        subsystems.add(Drivetrain.getInstance().initialize());
 //        subsystems.add(Indexer.getInstance().initialize());
         subsystems.add(Shooter.getInstance().initialize());
+        subsystems.add(Hood.getInstance().initialize());
         registerSubsystems();
     }
 
@@ -113,31 +116,31 @@ public class Enigma extends Robot {
 
         subsystems.forEach(SubsystemTemplate::onTeleopInit);
 
-        // Driver Controls
-        Drivetrain.getInstance().setDefaultCommand(new TeleOpDriveCommand(
-                () -> applyResponseCurve(avy.getLeftY(), D_RESPONSE_CURVE),
-                () -> applyResponseCurve(avy.getLeftX(), D_RESPONSE_CURVE),
-                () -> applyResponseCurve(avy.getRightX(), ROTATIONAL_SENSITIVITY)
-        ));
-        new Trigger(() -> avy.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > TRIGGER_DEADZONE)
-                .whenActive(Drivetrain.getInstance()::enableSlowMode)
-                .whenInactive(Drivetrain.getInstance()::disableSlowMode);
-
-        // Reset Heading (IMPORTANTIAL)
-        avy.getGamepadButton(GamepadKeys.Button.START)
-                .whenPressed(Drivetrain.getInstance()::resetHeading);
-
-        // Turn Field Centric ON/OFF (IMPORTANTIAL)
-        avy.getGamepadButton(GamepadKeys.Button.BACK)
-                .whenPressed(Drivetrain.getInstance()::toggleRobotCentric);
-
-
+//        // Driver Controls
+//        Drivetrain.getInstance().setDefaultCommand(new TeleOpDriveCommand(
+//                () -> applyResponseCurve(avy.getLeftY(), D_RESPONSE_CURVE),
+//                () -> applyResponseCurve(avy.getLeftX(), D_RESPONSE_CURVE),
+//                () -> applyResponseCurve(avy.getRightX(), ROTATIONAL_SENSITIVITY)
+//        ));
+//        new Trigger(() -> avy.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > TRIGGER_DEADZONE)
+//                .whenActive(Drivetrain.getInstance()::enableSlowMode)
+//                .whenInactive(Drivetrain.getInstance()::disableSlowMode);
+//
+//        // Reset Heading (IMPORTANTIAL)
+//        avy.getGamepadButton(GamepadKeys.Button.START)
+//                .whenPressed(Drivetrain.getInstance()::resetHeading);
+//
+//        // Turn Field Centric ON/OFF (IMPORTANTIAL)
+//        avy.getGamepadButton(GamepadKeys.Button.BACK)
+//                .whenPressed(Drivetrain.getInstance()::toggleRobotCentric);
+//
+//
 
     //MANIPULATOR CONTROLS
 
     // Intake
     ishu.getGamepadButton(GamepadKeys.Button.A)
-            .whenPressed(ShooterCommands.REJECT.get());
+            .whenPressed(ShooterCommands.SET_HOOD_ANGLE.get());
 
 //    // Shoot
 //    ishu.getGamepadButton(GamepadKeys.Button.X)
@@ -155,7 +158,10 @@ public class Enigma extends Robot {
             .whenPressed(ShooterCommands.REJECT.get());
 
 
-  Log.i("Enigma", "============INITIALIZED TELEOP I HOPE WE WON OR GOT THREE RP============");
+
+
+
+        Log.i("Enigma", "============INITIALIZED TELEOP I HOPE WE WON OR GOT THREE RP============");
 }
 
     // Response Curve Method
@@ -186,6 +192,8 @@ public class Enigma extends Robot {
 
         telemetry.addLine();
         telemetry.addData("Alliance", RobotStatus.alliance);
+        telemetry.addData("Servo Position: ", Hood.getInstance().hoodServo.getPosition());
+        telemetry.addData("Left Y: ", ishu.getLeftY());
         telemetry.addData("Loop Time", timer.milliseconds());
         telemetry.addData("Status", RobotStatus.robotState);
         telemetry.update();

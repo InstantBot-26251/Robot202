@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.robot.Enigma;
 import org.firstinspires.ftc.teamcode.robot.RobotStatus;
+import org.firstinspires.ftc.teamcode.shooter.Hood;
 
 @Config
 @TeleOp(name = "Period of Manual Control")

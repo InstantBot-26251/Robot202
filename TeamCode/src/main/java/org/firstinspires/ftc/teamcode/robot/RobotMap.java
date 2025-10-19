@@ -68,53 +68,53 @@ public class RobotMap {
 
         this.hardwareMap = hardwareMap;
 
-        OTOS = hardwareMap.get(SparkFunOTOS.class, "otos");
+//        OTOS = hardwareMap.get(SparkFunOTOS.class, "otos");
 
-        WEBCAM = hardwareMap.get(WebcamName.class, "Webcam 1");
+//        WEBCAM = hardwareMap.get(WebcamName.class, "Webcam 1");
 
-        MOTOR_FL = hardwareMap.get(DcMotorEx.class, "frontLeft");
-        MOTOR_FR = hardwareMap.get(DcMotorEx.class, "frontRight");
-        MOTOR_BL = hardwareMap.get(DcMotorEx.class, "backLeft");
-        MOTOR_BR = hardwareMap.get(DcMotorEx.class, "backRight");
+//        MOTOR_FL = hardwareMap.get(DcMotorEx.class, "frontLeft");
+//        MOTOR_FR = hardwareMap.get(DcMotorEx.class, "frontRight");
+//        MOTOR_BL = hardwareMap.get(DcMotorEx.class, "backLeft");
+//        MOTOR_BR = hardwareMap.get(DcMotorEx.class, "backRight");
 
         // Shooter
         SHOOTER = hardwareMap.get(DcMotorEx.class, "shooter");
         HOOD = hardwareMap.get(Servo.class, "hood");
-
-        // Indexer
-        INDEXER_ROTOR = hardwareMap.get(DcMotorEx.class, "indexerRotor");
-        INDEXER_GATE = hardwareMap.get(Servo.class, "indexerGate");
-
-        COLOR1 = hardwareMap.get(RevColorSensorV3.class, "color1");
-        COLOR2 = hardwareMap.get(RevColorSensorV3.class, "color2");
-        COLOR3 = hardwareMap.get(RevColorSensorV3.class, "color3");
-        COLOR4 = hardwareMap.get(RevColorSensorV3.class, "color4");
-        COLOR5 = hardwareMap.get(RevColorSensorV3.class, "color5");
-        COLOR6 = hardwareMap.get(RevColorSensorV3.class, "color6");
+//
+//        // Indexer
+//        INDEXER_ROTOR = hardwareMap.get(DcMotorEx.class, "indexerRotor");
+//        INDEXER_GATE = hardwareMap.get(Servo.class, "indexerGate");
+//
+//        COLOR1 = hardwareMap.get(RevColorSensorV3.class, "color1");
+//        COLOR2 = hardwareMap.get(RevColorSensorV3.class, "color2");
+//        COLOR3 = hardwareMap.get(RevColorSensorV3.class, "color3");
+//        COLOR4 = hardwareMap.get(RevColorSensorV3.class, "color4");
+//        COLOR5 = hardwareMap.get(RevColorSensorV3.class, "color5");
+//        COLOR6 = hardwareMap.get(RevColorSensorV3.class, "color6");
 
         addDevicesH();
         addDevicesC();
     }
 
     private void addDevicesH() {
-        devicesH.add(getInstance().OTOS);
-        devicesH.add(getInstance().MOTOR_FL);
-        devicesH.add(getInstance().MOTOR_FR);
-        devicesH.add(getInstance().MOTOR_BL);
-        devicesH.add(getInstance().MOTOR_BR);
+//        devicesH.add(getInstance().OTOS);
+//        devicesH.add(getInstance().MOTOR_FL);
+//        devicesH.add(getInstance().MOTOR_FR);
+//        devicesH.add(getInstance().MOTOR_BL);
+//        devicesH.add(getInstance().MOTOR_BR);
         devicesH.add(getInstance().SHOOTER);
         devicesH.add(getInstance().HOOD);
-        devicesH.add(getInstance().INDEXER_ROTOR);
-        devicesH.add(getInstance().INDEXER_GATE);
-        devicesH.add(getInstance().COLOR1);
-        devicesH.add(getInstance().COLOR2);
-        devicesH.add(getInstance().COLOR3);
-        devicesH.add(getInstance().COLOR4);
-        devicesH.add(getInstance().COLOR5);
-        devicesH.add(getInstance().COLOR6);
+//        devicesH.add(getInstance().INDEXER_ROTOR);
+//        devicesH.add(getInstance().INDEXER_GATE);
+//        devicesH.add(getInstance().COLOR1);
+//        devicesH.add(getInstance().COLOR2);
+//        devicesH.add(getInstance().COLOR3);
+//        devicesH.add(getInstance().COLOR4);
+//        devicesH.add(getInstance().COLOR5);
+//        devicesH.add(getInstance().COLOR6);
     }
     private void addDevicesC() {
-       devicesH.add(getInstance().WEBCAM);
+//       devicesH.add(getInstance().WEBCAM);
     }
 
     // Getter Methods

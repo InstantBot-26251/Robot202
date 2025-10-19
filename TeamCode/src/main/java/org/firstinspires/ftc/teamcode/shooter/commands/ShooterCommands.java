@@ -58,7 +58,7 @@ public class ShooterCommands {
         // Spin up shooter for rejection - ideally half power
         SPIN_SLOW = () -> Commands.sequence(
                 Commands.runOnce(() -> shooter.setState(ShooterState.REJECTION)),
-                Commands.runOnce(() -> shooter.startShooting(0.25)) // TODO: Test and Tune (TAT)
+                Commands.runOnce(() -> shooter.startShooting(0.75)) // TODO: Test and Tune (TAT)
         );
 
 

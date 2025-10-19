@@ -11,7 +11,6 @@ import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_D
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_INDEX_SPEED;
 
 import com.qualcomm.hardware.rev.RevColorSensorV3;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -19,7 +18,6 @@ import org.firstinspires.ftc.teamcode.indexer.Enums.IndexerState;
 import org.firstinspires.ftc.teamcode.indexer.Enums.BallColor;
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
 import org.firstinspires.ftc.teamcode.util.SubsystemTemplate;
-import org.firstinspires.ftc.teamcode.util.hardware.InstantMotor;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -58,7 +58,7 @@ public class Shooter extends SubsystemTemplate {
 
     public void reject() {
         setState(ShooterState.REJECTION);
-        shooter.setPower(0.5);
+        shooter.setPower(0.75);
     }
 
     public void stopShooting() {

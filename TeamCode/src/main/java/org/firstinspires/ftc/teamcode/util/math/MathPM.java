@@ -15,7 +15,8 @@ public class MathPM {
     public static double calculateLaunchAngle(double distance, double initialVelocity, double heightDifference) {
         // Using my equations
         double v2 = initialVelocity * initialVelocity;
-        double discriminant = v2 * v2 - GRAVITY * (GRAVITY * distance * distance + 2 * heightDifference * v2);
+        double term = GRAVITY * (GRAVITY * distance * distance + 2 * heightDifference * v2);
+        double discriminant = v2 * v2 - term;
 
         // Check if solution exists
         if (discriminant < 0) {
@@ -23,8 +24,9 @@ public class MathPM {
         }
 
         // Two possible angles - we typically want the lower one
-        double angle1 = Math.atan((v2 - Math.sqrt(discriminant)) / (GRAVITY * distance));
-        double angle2 = Math.atan((v2 + Math.sqrt(discriminant)) / (GRAVITY * distance));
+        double sqrtDisc = Math.sqrt(discriminant);
+        double angle1 = Math.atan((v2 - sqrtDisc) / (GRAVITY * distance));
+        double angle2 = Math.atan((v2 + sqrtDisc) / (GRAVITY * distance));
 
         // Convert to degrees and return the lower angle
         double angle1Deg = Math.toDegrees(angle1);
@@ -62,7 +64,12 @@ public class MathPM {
         double vy0 = initialVelocity * Math.sin(angleRad);
 
         // Use quadratic formula
-        double discriminant = vy0 * vy0 + 2 * GRAVITY * heightDifference;
+        double discriminant = vy0 * vy0 - 2 * GRAVITY * heightDifference;
+
+        if (discriminant < 0) {
+            return -1; // No real solution
+        }
+
         return (vy0 + Math.sqrt(discriminant)) / GRAVITY;
     }
 
@@ -86,6 +93,7 @@ public class MathPM {
         double angleRad = Math.toRadians(angle);
         double vx = initialVelocity * Math.cos(angleRad);
         double timeOfFlight = calculateTimeOfFlight(angle, initialVelocity, heightDifference);
+        if (timeOfFlight <= 0) return -1;
         return vx * timeOfFlight;
     }
 

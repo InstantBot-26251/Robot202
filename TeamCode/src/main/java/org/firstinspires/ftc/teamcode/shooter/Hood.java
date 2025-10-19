@@ -2,12 +2,13 @@ package org.firstinspires.ftc.teamcode.shooter;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
+import org.firstinspires.ftc.teamcode.robot.Enigma;
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
 import org.firstinspires.ftc.teamcode.util.SubsystemTemplate;
 import org.firstinspires.ftc.teamcode.util.hardware.InstantServo;
 
 public class Hood extends SubsystemTemplate {
-    private InstantServo hoodServo;
+    public InstantServo hoodServo;
     private double currentAngleDeg = 0;
 
     private static final Hood INSTANCE = new Hood();
@@ -17,14 +18,15 @@ public class Hood extends SubsystemTemplate {
 
     @Override
     public void onAutonomousInit() {
+        telemetry = Enigma.getInstance().getTelemetry();
         hoodServo = new InstantServo(RobotMap.getInstance().HOOD);
-        setAngle(0);
     }
 
     @Override
     public void onTeleopInit() {
+        telemetry = Enigma.getInstance().getTelemetry();
         hoodServo = new InstantServo(RobotMap.getInstance().HOOD);
-        setAngle(0);
+
     }
 
     public void setAngle(double angleDeg) {
@@ -36,6 +38,10 @@ public class Hood extends SubsystemTemplate {
 
     public double getCurrentAngle() {
         return currentAngleDeg;
+    }
+
+    public void setManualAngle(double servoPos) {
+        hoodServo.setPosition(servoPos);
     }
 
     private double mapAngleToServo(double angleDeg) {
