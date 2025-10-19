@@ -71,7 +71,7 @@ public class Enigma extends Robot {
 
     private void robotInit() {
         subsystems.clear();
-//        subsystems.add(Drivetrain.getInstance().initialize());
+        subsystems.add(Drivetrain.getInstance().initialize());
 //        subsystems.add(Indexer.getInstance().initialize());
         subsystems.add(Shooter.getInstance().initialize());
         subsystems.add(Hood.getInstance().initialize());
