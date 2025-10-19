@@ -1,8 +1,7 @@
 package org.firstinspires.ftc.teamcode.indexer;
 
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.BALL_PRESENCE_THRESHOLD;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.GATE_CLOSED_POSITION;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.GATE_OPEN_POSITION;
+
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.GREEN_THRESHOLD;
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.PURPLE_BLUE_THRESHOLD;
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.PURPLE_MIN_RATIO;
@@ -11,8 +10,8 @@ import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_D
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_INDEX_SPEED;
 
 import com.qualcomm.hardware.rev.RevColorSensorV3;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.indexer.Enums.IndexerState;
 import org.firstinspires.ftc.teamcode.indexer.Enums.BallColor;
@@ -26,7 +25,7 @@ public class Indexer extends SubsystemTemplate {
 
     // Hardware - 6 color sensors total (2 per slot as redundant backups)
     private DcMotorEx rotorMotor;
-    private Servo gateServo;
+    private CRServo hopperServo;
 
     // Slot 0 sensors (both scan same position)
     private RevColorSensorV3 slot0SensorA;  // Primary sensor for slot 0
@@ -71,7 +70,7 @@ public class Indexer extends SubsystemTemplate {
 
         // Get hardware directly from RobotMap
         rotorMotor = map.INDEXER_ROTOR;
-        gateServo = map.INDEXER_GATE;
+        hopperServo = map.INDEXER_HOPPER;
 
         // Map color sensors to indexer slots
         slot0SensorA = map.COLOR1;  // Slot 0, Sensor A
@@ -83,7 +82,7 @@ public class Indexer extends SubsystemTemplate {
 
         // Note: COLOR7 is available if needed for intake sensor
 
-        closeGate();
+        stopHopper();
         return this;
     }
 
@@ -111,7 +110,7 @@ public class Indexer extends SubsystemTemplate {
         }
 
         stopRotor();
-        closeGate();
+        stopHopper();
     }
 
     //------------------------------CALIBRATION---------------------------------------------//
@@ -406,19 +405,17 @@ public class Indexer extends SubsystemTemplate {
         return state != IndexerState.ROTATING;
     }
 
-    //---------------------------------GATE CONTROL--------------------------//
+    //---------------------------------HOPPER CONTROL--------------------------//
 
-    public void openGate() {
-        gateServo.setPosition(GATE_OPEN_POSITION);
+    public void startHopper() {
+        hopperServo.setPower(1);
     }
 
-    public void closeGate() {
-        gateServo.setPosition(GATE_CLOSED_POSITION);
+    public void stopHopper() {
+        hopperServo.setPower(0);
     }
 
-    public boolean isGateOpen() {
-        return Math.abs(gateServo.getPosition() - GATE_OPEN_POSITION) < 0.05;
-    }
+
 
     //---------------------------------DISPENSING---------------------------//
     /**
@@ -426,7 +423,7 @@ public class Indexer extends SubsystemTemplate {
      */
     public void dispenseBall() {
         state = IndexerState.DISPENSING;
-        openGate();
+        startHopper();
         rotorMotor.setPower(ROTOR_DISPENSE_SPEED);
     }
 

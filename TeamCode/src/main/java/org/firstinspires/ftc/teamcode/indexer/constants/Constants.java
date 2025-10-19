@@ -5,8 +5,6 @@ public class Constants {
     public static final double ROTOR_CALIBRATION_SPEED = 0.15;
     public static final double ROTOR_INDEX_SPEED = 0.3;
     public static final double ROTOR_DISPENSE_SPEED = 0.4;
-    public static final double GATE_OPEN_POSITION = 0.8; // TODO: Tune
-    public static final double GATE_CLOSED_POSITION = 0.2; // TODO: Tune
 
     // Ball detection thresholds
     public static final int BALL_PRESENCE_THRESHOLD = 50; // Any RGB value > this = ball present

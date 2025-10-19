@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.indexer.commands;
 
 import static org.firstinspires.ftc.teamcode.indexer.commands.CommandsConstants.BALL_SETTLE_TIME;
 import static org.firstinspires.ftc.teamcode.indexer.commands.CommandsConstants.DISPENSE_DURATION;
-import static org.firstinspires.ftc.teamcode.indexer.commands.CommandsConstants.GATE_DELAY;
+import static org.firstinspires.ftc.teamcode.indexer.commands.CommandsConstants.HOPPER_DELAY;
 import static org.firstinspires.ftc.teamcode.indexer.commands.CommandsConstants.REJECT_DURATION;
 import static org.firstinspires.ftc.teamcode.indexer.commands.CommandsConstants.ROTATION_DURATION;
 import static org.firstinspires.ftc.teamcode.indexer.commands.CommandsConstants.VERIFICATION_DELAY;
@@ -146,8 +146,8 @@ public class IndexerCommands {
                 }),
 
                 // Open gate
-                Commands.runOnce(indexer::openGate),
-                Commands.waitSeconds(GATE_DELAY),
+                Commands.runOnce(indexer::startHopper),
+                Commands.waitSeconds(HOPPER_DELAY),
 
                 // Rotate to push ball out
                 Commands.runOnce(indexer::dispenseBall),
@@ -174,7 +174,7 @@ public class IndexerCommands {
                 }),
 
                 // Close gate
-                Commands.runOnce(indexer::closeGate)
+                Commands.runOnce(indexer::stopHopper)
         );
 
         // Full sequence: prepare and dispense green ball
@@ -207,9 +207,9 @@ public class IndexerCommands {
                 Commands.defer(() -> {
                     final int snapshotSlot = indexer.getCurrentSlot();
                     return Commands.sequence(
-                            // Open gate
-                            Commands.runOnce(indexer::openGate),
-                            Commands.waitSeconds(GATE_DELAY),
+                            // Start Hopper
+                            Commands.runOnce(indexer::startHopper),
+                            Commands.waitSeconds(HOPPER_DELAY),
 
                             // Rotate backwards to eject
                             Commands.runOnce(() -> indexer.rotateBySlots(-1)),
@@ -247,8 +247,8 @@ public class IndexerCommands {
                                 }
                             }),
 
-                            // close gate and return precisely to the original alignment
-                            Commands.runOnce(indexer::closeGate),
+                            // stop hopper and return precisely to the original alignment
+                            Commands.runOnce(indexer::stopHopper),
                             Commands.runOnce(() -> indexer.rotateToSlot(snapshotSlot)),
                             Commands.waitSeconds(ROTATION_DURATION),
                             Commands.runOnce(indexer::stopRotor)
@@ -262,7 +262,7 @@ public class IndexerCommands {
 
         STOP = () -> Commands.runOnce(() -> {
             indexer.stopRotor();
-            indexer.closeGate();
+            indexer.stopHopper();
             indexer.setState(IndexerState.IDLE);
             System.out.println("Indexer stopped");
         });
