@@ -9,6 +9,8 @@ import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.PURPLE_
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_DISPENSE_SPEED;
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_INDEX_SPEED;
 
+import android.util.Log;
+
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -82,7 +84,6 @@ public class Indexer extends SubsystemTemplate {
 
         // Note: COLOR7 is available if needed for intake sensor
 
-        stopHopper();
         return this;
     }
 
@@ -122,6 +123,8 @@ public class Indexer extends SubsystemTemplate {
     public void calibrateRotor() {
         state = IndexerState.CALIBRATING;
         currentSlot = 0;
+        if (isCalibrated = false) {
+        }
 
         // For now, assume we start at slot 0
         isCalibrated = true;
@@ -179,9 +182,7 @@ public class Indexer extends SubsystemTemplate {
         int blue = sensor.blue();
 
         // Artifact present if any color value exceeds threshold
-        return (red > ARTIFACT_PRESENCE_THRESHOLD ||
-                green > ARTIFACT_PRESENCE_THRESHOLD ||
-                blue > ARTIFACT_PRESENCE_THRESHOLD);
+        return green > GREEN_THRESHOLD || (red > PURPLE_RED_THRESHOLD && blue > PURPLE_BLUE_THRESHOLD);
     }
 
     /**
@@ -207,7 +208,7 @@ public class Indexer extends SubsystemTemplate {
         if (aHasArtifact && !bHasArtifact) {
             return classifyColor(sensorA.red(), sensorA.green(), sensorA.blue());
         }
-        if (bHasArtifact && !aHasArtifact) {
+        else if (!aHasArtifact) {
             return classifyColor(sensorB.red(), sensorB.green(), sensorB.blue());
         }
 
@@ -224,11 +225,11 @@ public class Indexer extends SubsystemTemplate {
      */
     private ArtifactColor classifyColor(int red, int green, int blue) {
         // No artifact present
-        if (red < ARTIFACT_PRESENCE_THRESHOLD &&
-                green < ARTIFACT_PRESENCE_THRESHOLD &&
-                blue < ARTIFACT_PRESENCE_THRESHOLD) {
-            return ArtifactColor.NONE;
-        }
+//        if (red < ARTIFACT_PRESENCE_THRESHOLD &&
+//                green < ARTIFACT_PRESENCE_THRESHOLD &&
+//                blue < ARTIFACT_PRESENCE_THRESHOLD) {
+//            return ArtifactColor.NONE;
+//        }
 
         // Detect GREEN - green channel dominant
         if (green > GREEN_THRESHOLD && green > red && green > blue) {
@@ -263,28 +264,28 @@ public class Indexer extends SubsystemTemplate {
             boolean artifactPresent = isArtifactInSlot(i);
             int confidence = getDetectionConfidence(i);
 
-            if (artifactPresent) {
+            if (artifactPresent && slot != null) {
                 // Artifact detected in slot
-                if (!slot.hasConfirmedArtifact) {
+                if (!slot.getHasConfirmedArtifact()) {
                     // New artifact detected
                     slot.color = detectColorInSlot(i);
-                    slot.hasConfirmedArtifact = true;
-                    slot.detectionConfidence = confidence;
+                    slot.setHasConfirmedArtifact(true);
+                    slot.setDetectionConfidence(confidence);
 
                     if (confidence == 2) {
-                        System.out.println("Artifact detected in slot " + i + ": " + slot.color + " (BOTH sensors)");
+                        Log.i("Artifact detected in slot ", i + ": " + slot.color + " (BOTH sensors)");
                     } else {
-                        System.out.println("Artifact detected in slot " + i + ": " + slot.color + " (ONE sensor - hole in artifact?)");
+                        Log.i("Artifact detected in slot ", + i + ": " + slot.color + " (ONE sensor - hole in artifact?)");
                     }
                 } else {
                     // Update confidence for existing artifact
-                    slot.detectionConfidence = confidence;
+                    slot.setDetectionConfidence(confidence);
                 }
             } else {
                 // No artifact detected
-                if (slot.hasConfirmedArtifact) {
+                if (slot.getHasConfirmedArtifact()) {
                     // Artifact has left the slot
-                    System.out.println("Artifact left slot " + i);
+                    Log.i("Artifact left slot ", i +"");
                     slot.clear();
                 }
             }
@@ -297,7 +298,7 @@ public class Indexer extends SubsystemTemplate {
      */
     public int findArtifactSlot(ArtifactColor targetColor) {
         for (int i = 0; i < 3; i++) {
-            if (slots.get(i).color == targetColor && slots.get(i).hasConfirmedArtifact) {
+            if (slots.get(i).color == targetColor && slots.get(i).getHasConfirmedArtifact()) {
                 return i;
             }
         }
@@ -310,7 +311,7 @@ public class Indexer extends SubsystemTemplate {
     public int getArtifactCount() {
         int count = 0;
         for (ArtifactSlot slot : slots.values()) {
-            if (slot.hasConfirmedArtifact) count++;
+            if (slot.getHasConfirmedArtifact()) count++;
         }
         return count;
     }
@@ -319,7 +320,7 @@ public class Indexer extends SubsystemTemplate {
      * Checks if indexer is full (all 3 slots occupied)
      */
     public boolean isFull() {
-        return getArtifactCount() >= 3;
+        return getArtifactCount() == 3;
     }
 
     /**
@@ -340,7 +341,7 @@ public class Indexer extends SubsystemTemplate {
      * Checks if current slot is available for a new artifact
      */
     public boolean isCurrentSlotAvailable() {
-        return !slots.get(currentSlot).hasConfirmedArtifact;
+        return !slots.get(currentSlot).getHasConfirmedArtifact();
     }
 
     //-----------------------rotorMotor CONTROL--------------------------------//

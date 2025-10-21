@@ -8,8 +8,8 @@ import org.firstinspires.ftc.teamcode.indexer.Enums.ArtifactColor;
 
 public class ArtifactSlot {
     public ArtifactColor color = ArtifactColor.NONE;
-    public boolean hasConfirmedArtifact = false;
-    public int detectionConfidence = 0; // 0 = none, 1 = one sensor, 2 = both sensors
+    private boolean hasConfirmedArtifact = false;
+    private int detectionConfidence = 0; // 0 = none, 1 = one sensor, 2 = both sensors
 
     public void clear() {
         color = ArtifactColor.NONE;
@@ -23,4 +23,21 @@ public class ArtifactSlot {
         String confidenceStr = detectionConfidence == 2 ? "BOTH" : "ONE";
         return color + " (" + confidenceStr + " sensor)";
     }
+
+    public boolean getHasConfirmedArtifact() {
+        return hasConfirmedArtifact;
+    }
+
+    public int getDetectionConfidence() {
+        return detectionConfidence;
+    }
+
+    public void setHasConfirmedArtifact(boolean tf) {
+        hasConfirmedArtifact = tf;
+    }
+
+    public void setDetectionConfidence(int detectionC) {
+        detectionConfidence = detectionC;
+    }
+
 }
