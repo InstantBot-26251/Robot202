@@ -7,7 +7,7 @@ public class Constants {
     public static final double ROTOR_DISPENSE_SPEED = 0.4;
 
     // Ball detection thresholds
-    public static final int BALL_PRESENCE_THRESHOLD = 50; // Any RGB value > this = ball present
+    public static final int ARTIFACT_PRESENCE_THRESHOLD = 50; // Any RGB value > this = ball present
 
     // Ball color thresholds (RGB values) - TODO: Tune these values
     public static final int GREEN_THRESHOLD = 150;

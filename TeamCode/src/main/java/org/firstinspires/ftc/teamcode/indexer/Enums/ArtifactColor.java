@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.indexer.Enums;
 
-public enum BallColor {
+public enum ArtifactColor {
     NONE,
     GREEN,
     PURPLE,

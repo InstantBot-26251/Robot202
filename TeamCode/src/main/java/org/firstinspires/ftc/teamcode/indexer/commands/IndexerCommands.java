@@ -10,7 +10,7 @@ import static org.firstinspires.ftc.teamcode.indexer.commands.CommandsConstants.
 import com.arcrobotics.ftclib.command.Command;
 
 import org.firstinspires.ftc.teamcode.indexer.Indexer;
-import org.firstinspires.ftc.teamcode.indexer.Enums.BallColor;
+import org.firstinspires.ftc.teamcode.indexer.Enums.ArtifactColor;
 import org.firstinspires.ftc.teamcode.indexer.Enums.IndexerState;
 import org.firstinspires.ftc.teamcode.util.commands.Commands;
 
@@ -93,27 +93,27 @@ public class IndexerCommands {
                 }),
 
                 // Wait for ball to be entering the slot
-                Commands.waitUntil(() -> indexer.isBallInSlot(indexer.getCurrentSlot()))
+                Commands.waitUntil(() -> indexer.isArtifactInSlot(indexer.getCurrentSlot()))
                         .withTimeout((long) 5.0),
 
                 // Wait for ball to fully enter (both sensors)
                 Commands.waitSeconds(BALL_SETTLE_TIME),
-                Commands.waitUntil(() -> indexer.isBallInSlot(indexer.getCurrentSlot()))
+                Commands.waitUntil(() -> indexer.isArtifactInSlot(indexer.getCurrentSlot()))
                         .withTimeout((long) 2.0),
 
                 // Verify and log ball
                 Commands.runOnce(() -> {
                     int slot = indexer.getCurrentSlot();
 
-                    if (!indexer.isBallInSlot(slot)) {
+                    if (!indexer.isArtifactInSlot(slot)) {
                         System.out.println("WARNING: Ball not fully detected in slot " + slot);
                         indexer.setState(IndexerState.ERROR);
                         return;
                     }
 
-                    BallColor color = indexer.detectColorInSlot(slot);
+                    ArtifactColor color = indexer.detectColorInSlot(slot);
                     System.out.println("Ball indexed in slot " + slot + ": " + color);
-                    System.out.println("Total balls: " + indexer.getBallCount());
+                    System.out.println("Total balls: " + indexer.getArtifactCount());
 
                     indexer.setState(IndexerState.IDLE);
                 }),
@@ -129,18 +129,18 @@ public class IndexerCommands {
         //------------------------PREPARE SPECIFIC COLOR---------------------//
 
         // Rotates indexer to position green ball at current slot for dispensing
-        PREPARE_GREEN_BALL = () -> prepareBall(BallColor.GREEN);
+        PREPARE_GREEN_BALL = () -> prepareBall(ArtifactColor.GREEN);
 
         // Rotates indexer to position purple ball at current slot for dispensing
 
-        PREPARE_PURPLE_BALL = () -> prepareBall(BallColor.PURPLE);
+        PREPARE_PURPLE_BALL = () -> prepareBall(ArtifactColor.PURPLE);
         //----------------------DISPENSING-----------------------//
 
         // Dispenses the ball from the current slot
         DISPENSE = () -> Commands.sequence(
                 Commands.runOnce(() -> {
                     int slot = indexer.getCurrentSlot();
-                    BallColor color = indexer.getBallColorInSlot(slot);
+                    ArtifactColor color = indexer.getArtifactColorInSlot(slot);
                     System.out.println("Dispensing " + color + " ball from slot " + slot + "...");
                     indexer.setState(IndexerState.DISPENSING);
                 }),
@@ -150,7 +150,7 @@ public class IndexerCommands {
                 Commands.waitSeconds(HOPPER_DELAY),
 
                 // Rotate to push ball out
-                Commands.runOnce(indexer::dispenseBall),
+                Commands.runOnce(indexer::dispenseArtifact),
                 Commands.waitSeconds(DISPENSE_DURATION),
 
                 // Stop rotation
@@ -161,14 +161,14 @@ public class IndexerCommands {
                 Commands.runOnce(() -> {
                     int slot = indexer.getCurrentSlot();
 
-                    if (!indexer.isBallDispensed(slot)) {
+                    if (!indexer.isArtifactDispensed(slot)) {
                         System.out.println("WARNING: Ball still detected in slot " + slot + " after dispense!");
                         System.out.println("Ball may be stuck. Consider running REJECT command.");
                         indexer.setState(IndexerState.ERROR);
                     } else {
                         System.out.println("Ball dispensed successfully from slot " + slot);
                         indexer.getSlot(slot).clear(); // Clear the slot manually if needed
-                        System.out.println("Remaining balls: " + indexer.getBallCount());
+                        System.out.println("Remaining balls: " + indexer.getArtifactCount());
                         indexer.setState(IndexerState.IDLE);
                     }
                 }),
@@ -198,7 +198,7 @@ public class IndexerCommands {
         REJECT_CURRENT_BALL = () -> Commands.sequence(
                 Commands.runOnce(() -> {
                     int slot = indexer.getCurrentSlot();
-                    BallColor color = indexer.getBallColorInSlot(slot);
+                    ArtifactColor color = indexer.getArtifactColorInSlot(slot);
                     System.out.println("Rejecting " + color + " ball from slot " + slot + "...");
                     indexer.setState(IndexerState.REJECTING);
                 }),
@@ -219,7 +219,7 @@ public class IndexerCommands {
 
                             // verify the ball in the og slot was actually ejected
                             Commands.runOnce(() -> {
-                                if (indexer.isBallInSlot(snapshotSlot)) {
+                                if (indexer.isArtifactInSlot(snapshotSlot)) {
                                     System.out.println("WARNING: Ball still in slot " + snapshotSlot + " after rejection!");
                                     indexer.setState(IndexerState.ERROR);
                                 } else {
@@ -237,7 +237,7 @@ public class IndexerCommands {
                             Commands.runOnce(() -> {
                                 int slot = indexer.getCurrentSlot();
 
-                                if (indexer.isBallInSlot(slot)) {
+                                if (indexer.isArtifactInSlot(slot)) {
                                     System.out.println("WARNING: Ball still in slot " + slot + " after rejection attempt!");
                                     indexer.setState(IndexerState.ERROR);
                                 } else {
@@ -280,10 +280,10 @@ public class IndexerCommands {
     //--------------------------------HELPER METHODS--------------------------------//
 
     // Helper method to prepare a ball of specific color for dispensing
-    private static Command prepareBall(BallColor targetColor) {
+    private static Command prepareBall(ArtifactColor targetColor) {
         Indexer indexer = Indexer.getInstance();
 
-        int targetSlot = indexer.findBallSlot(targetColor);
+        int targetSlot = indexer.findArtifactSlot(targetColor);
         int currentSlot = indexer.getCurrentSlot();
 
         if (targetSlot == -1) {
@@ -324,7 +324,7 @@ public class IndexerCommands {
                 // Verify correct color at current slot
                 Commands.runOnce(() -> {
                     int s = indexer.getCurrentSlot();
-                    BallColor detected = indexer.detectColorInSlot(s);
+                    ArtifactColor detected = indexer.detectColorInSlot(s);
                     if (detected == targetColor) {
                         System.out.println("Confirmed: " + targetColor + " ball ready at slot " + s);
                         indexer.setState(IndexerState.IDLE);
