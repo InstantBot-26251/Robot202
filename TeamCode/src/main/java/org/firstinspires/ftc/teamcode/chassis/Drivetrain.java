@@ -46,7 +46,7 @@ public class Drivetrain extends SubsystemTemplate {
         telemetry = Enigma.getInstance().getTelemetry();
         follower = Constants.createFollower(hardwareMap);
         follower.setPose(RobotStatus.robotPose);
-        follower.startTeleopDrive();
+        follower.startTeleOpDrive();
         setMaxPower(1.0);
     }
 
