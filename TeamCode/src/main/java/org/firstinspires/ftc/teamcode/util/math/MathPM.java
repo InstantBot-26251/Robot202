@@ -5,6 +5,16 @@ public class MathPM {
     // Gravity accel
     private static final double GRAVITY = 9.81;
 
+    // Calculation Tolerances
+    private static final double VELOCITY_TOLERANCE = 0.01; // m/s
+    private static final double MAX_ITERATIONS = 1000;
+    private static final double ANGLE_MIN = 0.0;
+    private static final double ANGLE_MAX = 90.0;
+
+    // Conversion constants
+    private static final double INCHES_TO_METERS = 0.0254;
+    private static final double METERS_TO_INCHES = 1.0 / INCHES_TO_METERS;
+
     /**
      * Calculates the optimal launch angle for projectile motion
      * @param distance Horizontal distance to target (meters)
