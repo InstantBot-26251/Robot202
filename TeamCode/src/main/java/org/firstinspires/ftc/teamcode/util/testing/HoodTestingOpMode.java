@@ -21,6 +21,7 @@ public class HoodTestingOpMode extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Initialize
+        RobotMap.getInstance().init(hardwareMap);
         hood = Hood.getInstance();
         hood.onTeleopInit();
 
@@ -40,8 +41,9 @@ public class HoodTestingOpMode extends LinearOpMode {
             if (gamepad1.dpad_up) {
                 testServoPos += 0.01;
                 testServoPos = Math.min(1.0, testServoPos);
-                hood.setManualAngle(testServoPos);
+                hood.setRawServoPosition(testServoPos);
                 sleep(100);
+
             }
 
             if (gamepad1.dpad_down) {
@@ -93,6 +95,7 @@ public class HoodTestingOpMode extends LinearOpMode {
             // Display current state
             telemetry.addLine("=== CURRENT STATE ===");
             telemetry.addData("Servo Position", "%.3f", testServoPos);
+            telemetry.addData("Servo Position", "%.3f", hood.getCurrentServoPosition());
             telemetry.addData("Calculated Angle", "%.1f°", hood.getCurrentAngle());
             telemetry.addLine();
             telemetry.addLine("=== MEASURE PHYSICAL ANGLE ===");

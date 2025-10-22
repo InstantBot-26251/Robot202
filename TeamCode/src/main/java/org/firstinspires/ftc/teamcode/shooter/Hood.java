@@ -21,13 +21,13 @@ public class Hood extends SubsystemTemplate {
     // Physical limits (tune these to match your robot!)
     private static final double MIN_ANGLE_DEG = 15.0;  // Minimum safe angle
     private static final double MAX_ANGLE_DEG = 75.0;  // Maximum safe angle
-    private static final double MIN_SERVO_POS = 0.0;   // Servo minimum (typically 0)
-    private static final double MAX_SERVO_POS = 1.0;   // Servo maximum (typically 1)
+    private static final double MIN_SERVO_POS = 0.0;
+    private static final double MAX_SERVO_POS = 1.0;
 
-    private static final double CALIBRATED_MIN_ANGLE = 1;
-    private static final double CALIBRATED_MAX_ANGLE = 1;
-    private static final double CALIBRATED_MIN_POS = 1;
-    private static final double CALIBRATED_MAX_POS = 1;
+    private static final double CALIBRATED_MIN_ANGLE = 20;
+    private static final double CALIBRATED_MAX_ANGLE = 70;
+    private static final double CALIBRATED_MIN_POS = 0.20;
+    private static final double CALIBRATED_MAX_POS = 0.80;
 
 
     // Movement parameters
@@ -64,11 +64,23 @@ public class Hood extends SubsystemTemplate {
     @Override
     public void onTeleopInit() {
         telemetry = Enigma.getInstance().getTelemetry();
-        hoodServo = new InstantServo(RobotMap.getInstance().HOOD);
 
+        // Ensure RobotMap has been initialized
+        if (RobotMap.getInstance().HOOD == null) {
+            if (telemetry != null)
+                telemetry.addLine("Hood Error: RobotMap.init(hardwareMap) not called OR 'hood' not in config.");
+            return;
+        }
         // Set to safe starting position
 //        setAngle(SAFE_ANGLE);
-        moveTimer.reset();
+            hoodServo = new InstantServo(RobotMap.getInstance().HOOD);
+        double p = RobotMap.getInstance().HOOD.getPosition();
+        if (Double.isFinite(p)) {
+            currentServoPosition = p;
+            currentAngleDeg = mapServoToAngle(p);
+            targetAngleDeg = currentAngleDeg;
+        }
+            moveTimer.reset();
 
         if (telemetry != null) {
             telemetry.addData("Hood", "Initialized at %.1f°", SAFE_ANGLE);
@@ -145,12 +157,7 @@ public class Hood extends SubsystemTemplate {
             return false;
         }
         if (hoodServo != null) {
-            hoodServo.setPosition(servoPos);
-//            currentServoPosition = servoPos;
-//
-//            // Try to back-calculate angle
-//            currentAngleDeg = mapServoToAngle(servoPos);
-//            targetAngleDeg = currentAngleDeg;
+         applyServo(servoPos);
 
 //            moveTimer.reset();
             return true;
@@ -165,17 +172,12 @@ public class Hood extends SubsystemTemplate {
     private double mapAngleToServo(double angleDeg) {
         double angleRange = CALIBRATED_MAX_ANGLE - CALIBRATED_MIN_ANGLE;
         double servoRange = CALIBRATED_MAX_POS - CALIBRATED_MIN_POS;
-
-        // Edge case: avoid division by zero
-        if (Math.abs(angleRange) < 0.001) {
-            return CALIBRATED_MIN_POS;
-        }
+        if (Math.abs(angleRange) < 1e-3) return CALIBRATED_MIN_POS;
 
         double normalized = (angleDeg - CALIBRATED_MIN_ANGLE) / angleRange;
         double servoPos = normalized * servoRange + CALIBRATED_MIN_POS;
-        return (angleDeg - MIN_ANGLE_DEG) / (MAX_ANGLE_DEG - MIN_ANGLE_DEG) * (MAX_SERVO_POS - MIN_SERVO_POS) + MIN_SERVO_POS;
 
-
+        return Math.max(MIN_SERVO_POS, Math.min(MAX_SERVO_POS, servoPos));
         // Clamp to servo limits
 //        return Math.max(MIN_SERVO_POS, Math.min(MAX_SERVO_POS, servoPos));
     }
@@ -288,5 +290,14 @@ public class Hood extends SubsystemTemplate {
         telemetry.addData("Angle Range", "%.1f° - %.1f°", MIN_ANGLE_DEG, MAX_ANGLE_DEG);
         telemetry.addData("Servo Range", "%.2f - %.2f", MIN_SERVO_POS, MAX_SERVO_POS);
         telemetry.addData("Move Time", "%.2f s", SERVO_MOVE_TIME);
+    }
+
+    private void applyServo(double servoPos) {
+        if (hoodServo == null) return;
+        hoodServo.setPosition(servoPos);
+        currentServoPosition = servoPos;
+        currentAngleDeg = mapServoToAngle(servoPos);
+        targetAngleDeg = currentAngleDeg;
+        moveTimer.reset();
     }
 }
