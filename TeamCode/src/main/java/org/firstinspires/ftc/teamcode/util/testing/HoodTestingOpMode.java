@@ -44,10 +44,6 @@ public class HoodTestingOpMode extends LinearOpMode {
 
             }
 
-            if (gamepad1.dpad_up) {
-                hood.setAngle(0);
-                sleep(100);
-            }
 
             if (gamepad1.dpad_down) {
                 testServoPos -= 0.01;
