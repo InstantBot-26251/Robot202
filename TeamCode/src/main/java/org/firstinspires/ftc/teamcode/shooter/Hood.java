@@ -19,15 +19,15 @@ public class Hood extends SubsystemTemplate {
     private ElapsedTime moveTimer;
 
     // Physical limits (tune these to match your robot!)
-    private static final double MIN_ANGLE_DEG = 15.0;  // Minimum safe angle
-    private static final double MAX_ANGLE_DEG = 75.0;  // Maximum safe angle
+    private static final double MIN_ANGLE_DEG = 0;  // Minimum safe angle
+    private static final double MAX_ANGLE_DEG = 70;  // Maximum safe angle
     private static final double MIN_SERVO_POS = 0.0;
     private static final double MAX_SERVO_POS = 1.0;
 
-    private static final double CALIBRATED_MIN_ANGLE = 20;
+    private static final double CALIBRATED_MIN_ANGLE = 0;
     private static final double CALIBRATED_MAX_ANGLE = 70;
-    private static final double CALIBRATED_MIN_POS = 0.20;
-    private static final double CALIBRATED_MAX_POS = 0.80;
+    private static final double CALIBRATED_MIN_POS = 0;
+    private static final double CALIBRATED_MAX_POS = 1;
 
 
     // Movement parameters
@@ -179,7 +179,6 @@ public class Hood extends SubsystemTemplate {
 
         return Math.max(MIN_SERVO_POS, Math.min(MAX_SERVO_POS, servoPos));
         // Clamp to servo limits
-//        return Math.max(MIN_SERVO_POS, Math.min(MAX_SERVO_POS, servoPos));
     }
 
     private double mapServoToAngle(double servoPos) {

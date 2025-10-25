@@ -39,11 +39,14 @@ public class HoodTestingOpMode extends LinearOpMode {
         while (opModeIsActive()) {
             // Manual servo position control
             if (gamepad1.dpad_up) {
-                testServoPos += 0.01;
-                testServoPos = Math.min(1.0, testServoPos);
-                hood.setRawServoPosition(testServoPos);
+                hood.setAngle(70);
                 sleep(100);
 
+            }
+
+            if (gamepad1.dpad_up) {
+                hood.setAngle(0);
+                sleep(100);
             }
 
             if (gamepad1.dpad_down) {
