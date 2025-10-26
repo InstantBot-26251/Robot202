@@ -1,9 +1,8 @@
-package org.firstinspires.ftc.teamcode.util.testing;
+package org.firstinspires.ftc.teamcode.util.testing.miscallenous;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 @TeleOp(name = "Drive Testing")
 public class DrivebaseTestingOpMode extends OpMode {
