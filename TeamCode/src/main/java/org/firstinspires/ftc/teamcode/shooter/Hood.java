@@ -26,8 +26,8 @@ public class Hood extends SubsystemTemplate {
 
     private static final double CALIBRATED_MIN_ANGLE = 0;
     private static final double CALIBRATED_MAX_ANGLE = 70;
-    private static final double CALIBRATED_MIN_POS = 0;
-    private static final double CALIBRATED_MAX_POS = 1;
+    private static final double CALIBRATED_MIN_POS = 1;
+    private static final double CALIBRATED_MAX_POS = 0;
 
 
     // Movement parameters
