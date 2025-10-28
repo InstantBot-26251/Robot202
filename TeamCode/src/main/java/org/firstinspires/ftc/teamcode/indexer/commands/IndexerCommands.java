@@ -17,6 +17,7 @@ import org.firstinspires.ftc.teamcode.util.commands.Commands;
 import java.util.function.Supplier;
 
 public class IndexerCommands {
+    private static final double MOVEMENT_TIMEOUT = 3.0;
 
     public static final Supplier<Command> CALIBRATE;
     public static final Supplier<Command> INDEX_BALL;
@@ -29,6 +30,8 @@ public class IndexerCommands {
     public static final Supplier<Command> STOP;
     public static final Supplier<Command> RESET;
     public static final Supplier<Command> ROTATE_NEXT;
+    public static final Supplier<Command> MOVE_TO_ENTRY;
+    public static final Supplier<Command> MOVE_TO_TRANSFER;
 
     static {
         Indexer indexer = Indexer.getInstance();
@@ -52,19 +55,66 @@ public class IndexerCommands {
                 })
         );
 
-        //----------------------ROTATION-------------------------------------------//
+        //----------------------Position Movement-------------------------------------------//
 
-        // Rotates to the next slot
+        /**
+         * Moves indexer to entry position using PID
+         */
+        MOVE_TO_ENTRY = () -> Commands.sequence(
+                Commands.runOnce(() -> {
+                    System.out.println("Moving to entry position...");
+                    indexer.moveToEntryPosition();
+                }),
+                Commands.waitUntil(indexer::atTargetPosition)
+                        .withTimeout((long) MOVEMENT_TIMEOUT),
+                Commands.runOnce(() -> {
+                    if (indexer.atTargetPosition()) {
+                        System.out.println("Reached entry position");
+                    } else {
+                        System.out.println("WARNING: Failed to reach entry position (timeout)");
+                        indexer.stopRotor();
+                    }
+                })
+        );
 
+        /**
+         * Moves indexer to transfer position using PID
+         */
+        MOVE_TO_TRANSFER = () -> Commands.sequence(
+                Commands.runOnce(() -> {
+                    System.out.println("Moving to transfer position...");
+                    indexer.moveToTransferPosition();
+                }),
+                Commands.waitUntil(indexer::atTargetPosition)
+                        .withTimeout((long) MOVEMENT_TIMEOUT),
+                Commands.runOnce(() -> {
+                    if (indexer.atTargetPosition()) {
+                        System.out.println("Reached transfer position");
+                    } else {
+                        System.out.println("WARNING: Failed to reach transfer position (timeout)");
+                        indexer.stopRotor();
+                    }
+                })
+        );
+
+        /**
+         * Rotates to the next slot using PID
+         */
         ROTATE_NEXT = () -> Commands.sequence(
                 Commands.runOnce(() -> {
-                    System.out.println("Rotating to next slot...");
+                    int currentSlot = indexer.getCurrentSlot();
+                    System.out.println("Rotating from slot " + currentSlot + " to slot " + ((currentSlot + 1) % 3));
                     indexer.rotateToNextSlot();
                 }),
-                Commands.waitSeconds(ROTATION_DURATION),
+                Commands.waitUntil(indexer::atTargetPosition)
+                        .withTimeout((long) MOVEMENT_TIMEOUT),
                 Commands.runOnce(() -> {
-                    indexer.stopRotor();
-                    System.out.println("Now at slot " + indexer.getCurrentSlot());
+                    if (indexer.atTargetPosition()) {
+                        System.out.println("Now at slot " + indexer.getCurrentSlot());
+                    } else {
+                        System.out.println("WARNING: Failed to reach target slot (timeout)");
+                        indexer.stopRotor();
+                    }
                 })
         );
 
@@ -210,12 +260,6 @@ public class IndexerCommands {
                             // Start Hopper
                             Commands.runOnce(indexer::startHopper),
                             Commands.waitSeconds(HOPPER_DELAY),
-
-                            // Rotate backwards to eject
-                            Commands.runOnce(() -> indexer.rotateBySlots(-1)),
-                            Commands.waitSeconds(REJECT_DURATION),
-                            Commands.runOnce(indexer::stopRotor),
-                            Commands.waitSeconds(VERIFICATION_DELAY),
 
                             // verify the ball in the og slot was actually ejected
                             Commands.runOnce(() -> {
