@@ -14,6 +14,7 @@ import android.util.Log;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.indexer.Enums.IndexerState;
@@ -150,6 +151,8 @@ public class Indexer extends SubsystemTemplate {
         rotorMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         rotorMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
+        rotorMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         currentSlot = 0;
         targetPosition = ENTRY_POSITION;
         isCalibrated = true;
@@ -209,6 +212,10 @@ public class Indexer extends SubsystemTemplate {
         Log.i("Indexer", "Moving to position: " + targetPosition);
     }
 
+    public void setIndexerPower() {
+        double output = pidController.calculate(getCurrentPosition());
+        rotorMotor.setPower(output);
+    }
     /**
      * Checks if indexer has reached target position
      */
@@ -574,7 +581,7 @@ public class Indexer extends SubsystemTemplate {
     @Override
     public void periodic() {
         updatePID();
-
+        double output = pidController.calculate(getCurrentPosition());
         // Continuously update artifact tracking
         updateArtifactTracking();
     }
