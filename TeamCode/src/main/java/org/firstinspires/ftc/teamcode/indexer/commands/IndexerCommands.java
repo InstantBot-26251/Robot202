@@ -21,6 +21,7 @@ public class IndexerCommands {
     // Core Operations
     private static final Supplier<Command> RESET;
     private static final Supplier<Command> INDEX_ARTIFACT;
+    private static final Supplier<Command> INDEX_AT_TRANSFER_POSITION;
     private static final Supplier<Command> ROTATE_NEXT;
 
     // Transfer Operations
@@ -144,6 +145,30 @@ public class IndexerCommands {
                 )
         );
 
+        INDEX_AT_TRANSFER_POSITION = () -> Commands.sequence(
+                // First, move to transfer position and stay there
+                Commands.runOnce(() -> {
+                    Log.i("IndexerCommands", "Moving to transfer position for indexing...");
+                    indexer.rotateToTransferPosition();
+                }),
+                Commands.waitUntil(indexer::isAtTargetPosition).withTimeout((long) ROTATION_TIMEOUT),
+
+                Commands.runOnce(() -> {
+                    if (!indexer.isAtTargetPosition()) {
+                        Log.e("IndexerCommands", "Failed to reach transfer position!");
+                        indexer.setState(IndexerState.ERROR);
+                        return;
+                    }
+                    Log.i("IndexerCommands", "At transfer position - ready to index artifacts in other slots");
+                }),
+
+                // Return to slot alignment to begin indexing
+                Commands.runOnce(() -> indexer.rotateToSlot(indexer.getCurrentSlot())),
+                Commands.waitUntil(indexer::isAtTargetPosition).withTimeout((long) ROTATION_TIMEOUT),
+
+                // Now index artifact normally (will use other slots)
+                INDEX_ARTIFACT.get()
+        );
         TRANSFER_CURRENT_ARTIFACT = () -> Commands.sequence(
                 Commands.runOnce(() -> {
                     int slot = indexer.getCurrentSlot();
@@ -262,6 +287,14 @@ public class IndexerCommands {
                 return Commands.none();
             }
             return Commands.defer(INDEX_ARTIFACT, indexer);
+        });
+
+        INDEX_AT_TRANSFER = Commands.deferredProxy(() -> {
+            if (indexer.isFull()) {
+                Log.e("IndexerCommands", "Cannot index - indexer is full");
+                return Commands.none();
+            }
+            return Commands.defer(INDEX_AT_TRANSFER_POSITION, indexer);
         });
 
         TRANSFER = Commands.deferredProxy(() -> {
