@@ -18,13 +18,10 @@ public class RobotStatus {
     public static Alliance alliance = Alliance.NONE;
     public static RobotState robotState = RobotState.DISABLED;
     public static Pose robotPose = new Pose();
+    public static boolean liveView = false;
 
-
-    public static void resetValues() {
-        delayMs = 0;
-        robotState = RobotState.DISABLED;
-        robotPose = new Pose();
-    }
+    private final AtomicInteger currentMotif = new AtomicInteger(0); // 0 = UNKNOWN, 1..n for motifs
+    private volatile int[] ballIndexOrder = new int[0]; // e.g. {2,1,3}
 
     public static boolean isEnabled() {
         return robotState == RobotState.TELEOP_ENABLED || robotState == RobotState.AUTONOMOUS_ENABLED;
