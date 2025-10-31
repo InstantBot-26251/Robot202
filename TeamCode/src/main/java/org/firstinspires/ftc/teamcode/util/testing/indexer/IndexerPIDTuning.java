@@ -63,35 +63,33 @@ public class IndexerPIDTuning extends OpMode {
 
     @Override
     public void loop() {
-            // Manual control mode
-            indexer.setIndexerPower();
-
+        indexer.periodic();
             // Automatic PID control
 
             // DPAD_UP - Go to entry
             if (gamepad1.dpad_up) {
-                indexer.moveToEntryPosition();
+                indexer.rotateToTransferPosition();
             }
 
             // DPAD_DOWN - Go to transfer
             if (gamepad1.dpad_down) {
-                indexer.moveToTransferPosition();
+                indexer.rotateToSlot(0);
             }
 
             // Run periodic (updates PID)
             indexer.periodic();
 
         // Display telemetry
-        int currentPos = indexer.getCurrentPosition();
-        int targetPos = indexer.getTargetPosition();
+        int currentPos = indexer.getRotorPosition();
+        int targetPos = indexer.getRotorTarget();
         int error = targetPos - currentPos;
 
         telemetry.addData("Mode", gamepad1.y ? "MANUAL" : "PID");
         telemetry.addLine();
-        telemetry.addData("Current Position", rotorMotor.getCurrentPosition());
-        telemetry.addData("Target Position", rotorMotor.getTargetPosition());
+        telemetry.addData("Current Position", currentPos);
+        telemetry.addData("Target Position", targetPos);
         telemetry.addData("Error", error);
-        telemetry.addData("At Target?", indexer.atTargetPosition());
+        telemetry.addData("At Target?", indexer.isAtTargetPosition());
         telemetry.addLine();
         telemetry.addData("Entry Position", ENTRY_POSITION);
         telemetry.addData("Transfer Position", TRANSFER_POSITION);

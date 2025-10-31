@@ -109,7 +109,7 @@ public class Indexer extends SubsystemTemplate {
         rotorMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rotorMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        stopHopper();
+//        stopHopper();
         return this;
     }
 
@@ -139,7 +139,7 @@ public class Indexer extends SubsystemTemplate {
         rotorMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         rotorMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-        rotorPid.setSetPoint(0);
+        rotorPid.setSetPoint(getRotorPosition());
 
         stopHopper();
         stopRotor();
@@ -168,7 +168,7 @@ public class Indexer extends SubsystemTemplate {
 
         rotorMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        rotorPid.setSetPoint(0);
+        rotorPid.setSetPoint(getRotorPosition());
 
         isCalibrated = true;
         state = IndexerState.IDLE;

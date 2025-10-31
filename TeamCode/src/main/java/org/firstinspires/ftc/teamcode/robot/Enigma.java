@@ -61,21 +61,21 @@ public class Enigma extends Robot {
     private final ElapsedTime timer = new ElapsedTime();
 
     // Pedro follower (2.0.3)
-    private Follower follower;
-    // Optional field-centric flip (0 = Red/default, PI = Blue); toggle if you like
-    private double teleOpOffsetHeading = 0.0;
+//    private Follower follower;
+// //     Optional field-centric flip (0 = Red/default, PI = Blue); toggle if you like
+//    private double teleOpOffsetHeading = 0.0;
 
-    public static Pose startingPose; // you can set this from Auto to carry over into TeleOp
-    private TelemetryManager telemetryM;
-
-    // TeleOp helper state (mirrors ExampleTeleOp)
-    private boolean automatedDrive = false;
-    private boolean slowMode = false;
-    private double slowModeMultiplier = 0.5;
-    private Supplier<PathChain> pathChain;
-
-    // Simple edge-detection (so we can do “wasPressed” with plain Gamepad)
-    private boolean prevA, prevB, prevRB, prevX, prevY;
+//    public static Pose startingPose; // you can set this from Auto to carry over into TeleOp
+//    private TelemetryManager telemetryM;
+////
+//    // TeleOp helper state (mirrors ExampleTeleOp)
+//    private boolean automatedDrive = false;
+//    private boolean slowMode = false;
+//    private double slowModeMultiplier = 0.5;
+//    private Supplier<PathChain> pathChain;
+//
+//    // Simple edge-detection (so we can do “wasPressed” with plain Gamepad)
+//    private boolean prevA, prevB, prevRB, prevX, prevY;
 
     private Enigma() {
         reset();
@@ -100,7 +100,7 @@ public class Enigma extends Robot {
 
     private void robotInit() {
         subsystems.clear();
-        subsystems.add(Drivetrain.getInstance().initialize());
+//        subsystems.add(Drivetrain.getInstance().initialize());
         subsystems.add(Indexer.getInstance().initialize());
         subsystems.add(Shooter.getInstance().initialize());
         subsystems.add(Hood.getInstance().initialize());
@@ -124,13 +124,13 @@ public class Enigma extends Robot {
         for (LynxModule hub : RobotMap.getInstance().getLynxModules()) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
-
-        // Pedro follower (official pattern)
-        follower = createFollower(hardwareMap);
-        follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
-
-        // Panels Telemetry (optional but recommended in docs)
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+//
+//        // Pedro follower (official pattern)
+//        follower = createFollower(hardwareMap);
+//        follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
+//
+//        // Panels Telemetry (optional but recommended in docs)
+//        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
 
         subsystems.forEach(SubsystemTemplate::onAutonomousInit);
@@ -153,19 +153,19 @@ public class Enigma extends Robot {
         ishu = new GamepadEx(manip);
         drivePad = drive;
         manipPad = manip;
-        resetEdgeDetectors();
-
-        follower = createFollower(hardwareMap);
-        follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
-        follower.update(); // extra safety update on init (mirrors example)
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-
-        follower = createFollower(hardwareMap);
-        follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
-        follower.update(); // extra safety update on init (mirrors example)
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-
-        follower.startTeleopDrive();
+//        resetEdgeDetectors();
+//
+//        follower = createFollower(hardwareMap);
+//        follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
+//        follower.update(); // extra safety update on init (mirrors example)
+//        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+//
+//        follower = createFollower(hardwareMap);
+//        follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
+//        follower.update(); // extra safety update on init (mirrors example)
+//        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+//
+//        follower.startTeleopDrive();
 
 
         subsystems.forEach(SubsystemTemplate::onTeleopInit);
@@ -242,49 +242,49 @@ public class Enigma extends Robot {
         }
 
 
-        if (follower != null) {
-            if (RobotStatus.isTeleop() && drivePad != null) {
-                // Manual drive unless automatedDrive is active
-                if (!automatedDrive) {
-                    double lx = -drivePad.left_stick_x;
-                    double ly = -drivePad.left_stick_y;
-                    double rx = -drivePad.right_stick_x;
-
-                    if (!slowMode) {
-                        follower.setTeleOpDrive(ly, lx, rx, true); // robot-centric
-                    } else {
-                        follower.setTeleOpDrive(
-                                ly * slowModeMultiplier,
-                                lx * slowModeMultiplier,
-                                rx * slowModeMultiplier,
-                                true
-                        );
-                    }
-
-                    // A pressed -> start automated path
-                    if (edgePressed(drivePad.a, prevA)) {
-                        follower.followPath(pathChain.get());
-                        automatedDrive = true;
-                    }
-                }
-
-                // If automated: B cancels OR auto completes
-                if (automatedDrive && (edgePressed(drivePad.b, prevB) || !follower.isBusy())) {
-                    follower.startTeleopDrive();
-                    automatedDrive = false;
-                }
-
-                // Slow mode toggle on Right Bumper
-                if (edgePressed(drivePad.right_bumper, prevRB)) {
-                    slowMode = !slowMode;
-                }
-
-                // Optional: adjust slow strength (+/-)
-                if (edgePressed(drivePad.x, prevX)) slowModeMultiplier += 0.25;
-                if (manipPad != null && edgePressed(manipPad.y, prevY)) slowModeMultiplier -= 0.25;
-
-                // update edge states
-                captureEdges();
+//        if (follower != null) {
+//            if (RobotStatus.isTeleop() && drivePad != null) {
+//                // Manual drive unless automatedDrive is active
+//                if (!automatedDrive) {
+//                    double lx = -drivePad.left_stick_x;
+//                    double ly = -drivePad.left_stick_y;
+//                    double rx = -drivePad.right_stick_x;
+//
+//                    if (!slowMode) {
+//                        follower.setTeleOpDrive(ly, lx, rx, true); // robot-centric
+//                    } else {
+//                        follower.setTeleOpDrive(
+//                                ly * slowModeMultiplier,
+//                                lx * slowModeMultiplier,
+//                                rx * slowModeMultiplier,
+//                                true
+//                        );
+//                    }
+//
+//                    // A pressed -> start automated path
+//                    if (edgePressed(drivePad.a, prevA)) {
+//                        follower.followPath(pathChain.get());
+//                        automatedDrive = true;
+//                    }
+//                }
+//
+//                // If automated: B cancels OR auto completes
+//                if (automatedDrive && (edgePressed(drivePad.b, prevB) || !follower.isBusy())) {
+//                    follower.startTeleopDrive();
+//                    automatedDrive = false;
+//                }
+//
+//                // Slow mode toggle on Right Bumper
+//                if (edgePressed(drivePad.right_bumper, prevRB)) {
+//                    slowMode = !slowMode;
+//                }
+//
+//                // Optional: adjust slow strength (+/-)
+//                if (edgePressed(drivePad.x, prevX)) slowModeMultiplier += 0.25;
+//                if (manipPad != null && edgePressed(manipPad.y, prevY)) slowModeMultiplier -= 0.25;
+//
+//                // update edge states
+//                captureEdges();
 
                 run();
 
@@ -300,16 +300,14 @@ public class Enigma extends Robot {
 
         }
 
-    }
-    private void resetEdgeDetectors() {
-        prevA = prevB = prevRB = prevX = prevY = false;
-    }
-    private boolean edgePressed(boolean now, boolean prev) { return now && !prev; }
-    private void captureEdges() {
-        prevA  = drivePad.a;
-        prevB  = drivePad.b;
-        prevRB = drivePad.right_bumper;
-        prevX  = drivePad.x;
-        if (manipPad != null) prevY = manipPad.y;
-    }
-}
+//    private void resetEdgeDetectors() {
+//        prevA = prevB = prevRB = prevX = prevY = false;
+//    }
+//    private boolean edgePressed(boolean now, boolean prev) { return now && !prev; }
+//    private void captureEdges() {
+//        prevA  = drivePad.a;
+//        prevB  = drivePad.b;
+//        prevRB = drivePad.right_bumper;
+//        prevX  = drivePad.x;
+//        if (manipPad != null) prevY = manipPad.y;
+//    }

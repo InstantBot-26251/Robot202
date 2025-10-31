@@ -12,7 +12,6 @@ public class Constants {
     public static double ROTOR_kP = 0.015;
     public static double ROTOR_kI = 0.0;
     public static double ROTOR_kD = 0.0001;
-    public static double ROTOR_kF = 0.0;
 
     // Position Constants - TUNE THESE
     public static double ENCODER_TICKS_PER_SLOT = 1000.0; // Distance between slots in encoder ticks
@@ -33,7 +32,6 @@ public class Constants {
      * ARTIFACT DETECTION THRESHOLDS
      */
     // Presence detection
-    public static int ARTIFACT_PRESENCE_THRESHOLD = 50; // Any RGB value > this = artifact present
 
     // Color detection thresholds - TUNE THESE
     public static int GREEN_THRESHOLD = 150;
