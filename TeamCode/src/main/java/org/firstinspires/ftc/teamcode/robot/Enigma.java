@@ -101,7 +101,7 @@ public class Enigma extends Robot {
     private void robotInit() {
         subsystems.clear();
         subsystems.add(Drivetrain.getInstance().initialize());
-//        subsystems.add(Indexer.getInstance().initialize());
+        subsystems.add(Indexer.getInstance().initialize());
         subsystems.add(Shooter.getInstance().initialize());
         subsystems.add(Hood.getInstance().initialize());
         registerSubsystems();
@@ -170,38 +170,38 @@ public class Enigma extends Robot {
 
         subsystems.forEach(SubsystemTemplate::onTeleopInit);
 
-//        // Driver Controls
-//        Drivetrain.getInstance().setDefaultCommand(new TeleOpDriveCommand(
-//                () -> applyResponseCurve(avy.getLeftY(), D_RESPONSE_CURVE),
-//                () -> applyResponseCurve(avy.getLeftX(), D_RESPONSE_CURVE),
-//                () -> applyResponseCurve(avy.getRightX(), ROTATIONAL_SENSITIVITY)
-//        ));
-//        new Trigger(() -> avy.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > TRIGGER_DEADZONE)
-//                .whenActive(Drivetrain.getInstance()::enableSlowMode)
-//                .whenInactive(Drivetrain.getInstance()::disableSlowMode);
-//
-//        // Reset Heading (IMPORTANTIAL)
-//        avy.getGamepadButton(GamepadKeys.Button.START)
-//                .whenPressed(Drivetrain.getInstance()::resetHeading);
-//
-//        // Turn Field Centric ON/OFF (IMPORTANTIAL)
-//        avy.getGamepadButton(GamepadKeys.Button.BACK)
-//                .whenPressed(Drivetrain.getInstance()::toggleRobotCentric);
-//
-//
+        // Driver Controls
+        Drivetrain.getInstance().setDefaultCommand(new TeleOpDriveCommand(
+                () -> applyResponseCurve(avy.getLeftY(), D_RESPONSE_CURVE),
+                () -> applyResponseCurve(avy.getLeftX(), D_RESPONSE_CURVE),
+                () -> applyResponseCurve(avy.getRightX(), ROTATIONAL_SENSITIVITY)
+        ));
+        new Trigger(() -> avy.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > TRIGGER_DEADZONE)
+                .whenActive(Drivetrain.getInstance()::enableSlowMode)
+                .whenInactive(Drivetrain.getInstance()::disableSlowMode);
+
+        // Reset Heading (IMPORTANTIAL)
+        avy.getGamepadButton(GamepadKeys.Button.START)
+                .whenPressed(Drivetrain.getInstance()::resetHeading);
+
+        // Turn Field Centric ON/OFF (IMPORTANTIAL)
+        avy.getGamepadButton(GamepadKeys.Button.BACK)
+                .whenPressed(Drivetrain.getInstance()::toggleRobotCentric);
+
 
         //MANIPULATOR CONTROLS
 
-        // Intake
-        ishu.getGamepadButton(GamepadKeys.Button.A)
-                .whenPressed(ShooterCommands.SET_HOOD_ANGLE.get());
 
-//    // Shoot
-//    ishu.getGamepadButton(GamepadKeys.Button.X)
-//            .whenPressed(ShooterCommands.AUTO_AIM_AND_SHOOT.get());
-        // Testing
-        ishu.getGamepadButton(GamepadKeys.Button.X)
-                .whenPressed(ShooterCommands.SPIN_UP.get());
+        ishu.getGamepadButton(GamepadKeys.Button.A)
+                .whenPressed(ShooterCommands.AUTO_AIM.get());
+
+    // Shoot
+    ishu.getGamepadButton(GamepadKeys.Button.X)
+            .whenPressed(ShooterCommands.SHOOT.get());
+
+//        // Testing
+//        ishu.getGamepadButton(GamepadKeys.Button.X)
+//                .whenPressed(ShooterCommands.SPIN_UP.get());
 
         // Stop Shooting
         ishu.getGamepadButton(GamepadKeys.Button.B)
@@ -241,9 +241,8 @@ public class Enigma extends Robot {
             hub.clearBulkCache();
         }
 
-        // ===== Pedro follower & Panels telemetry (run every loop) =====
+
         if (follower != null) {
-            // === TELEOP LOOP (matches ExampleTeleOp semantics) ===
             if (RobotStatus.isTeleop() && drivePad != null) {
                 // Manual drive unless automatedDrive is active
                 if (!automatedDrive) {

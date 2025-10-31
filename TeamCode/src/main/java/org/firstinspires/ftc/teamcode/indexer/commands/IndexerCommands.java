@@ -1,169 +1,137 @@
 package org.firstinspires.ftc.teamcode.indexer.commands;
 
-import static org.firstinspires.ftc.teamcode.indexer.commands.CommandsConstants.BALL_SETTLE_TIME;
-import static org.firstinspires.ftc.teamcode.indexer.commands.CommandsConstants.DISPENSE_DURATION;
-import static org.firstinspires.ftc.teamcode.indexer.commands.CommandsConstants.HOPPER_DELAY;
-import static org.firstinspires.ftc.teamcode.indexer.commands.CommandsConstants.REJECT_DURATION;
-import static org.firstinspires.ftc.teamcode.indexer.commands.CommandsConstants.ROTATION_DURATION;
-import static org.firstinspires.ftc.teamcode.indexer.commands.CommandsConstants.VERIFICATION_DELAY;
+import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.*;
+
+import android.util.Log;
 
 import com.arcrobotics.ftclib.command.Command;
 
-import org.firstinspires.ftc.teamcode.indexer.Indexer;
 import org.firstinspires.ftc.teamcode.indexer.Enums.ArtifactColor;
 import org.firstinspires.ftc.teamcode.indexer.Enums.IndexerState;
+import org.firstinspires.ftc.teamcode.indexer.Indexer;
 import org.firstinspires.ftc.teamcode.util.commands.Commands;
+import org.firstinspires.ftc.teamcode.vision.ATVision;
 
 import java.util.function.Supplier;
 
 public class IndexerCommands {
-    private static final double MOVEMENT_TIMEOUT = 3.0;
 
-    public static final Supplier<Command> CALIBRATE;
-    public static final Supplier<Command> INDEX_BALL;
-    public static final Supplier<Command> PREPARE_GREEN_BALL;
-    public static final Supplier<Command> PREPARE_PURPLE_BALL;
-    public static final Supplier<Command> DISPENSE;
-    public static final Supplier<Command> DISPENSE_GREEN;
-    public static final Supplier<Command> DISPENSE_PURPLE;
-    public static final Supplier<Command> REJECT_CURRENT_BALL;
-    public static final Supplier<Command> STOP;
-    public static final Supplier<Command> RESET;
-    public static final Supplier<Command> ROTATE_NEXT;
-    public static final Supplier<Command> MOVE_TO_ENTRY;
-    public static final Supplier<Command> MOVE_TO_TRANSFER;
+    // ==================== SUPPLIER COMMANDS (Internal Use) ====================
+
+    // Core Operations
+    private static final Supplier<Command> RESET;
+    private static final Supplier<Command> INDEX_ARTIFACT;
+    private static final Supplier<Command> ROTATE_NEXT;
+
+    // Transfer Operations
+    private static final Supplier<Command> TRANSFER_CURRENT_ARTIFACT;
+    private static final Supplier<Command> TRANSFER_GREEN;
+    private static final Supplier<Command> TRANSFER_PURPLE;
+
+    // Sequence Operations
+    private static final Supplier<Command> TRANSFER_SEQUENCE_PPG;
+    private static final Supplier<Command> TRANSFER_SEQUENCE_PGP;
+    private static final Supplier<Command> TRANSFER_SEQUENCE_GPP;
+    private static final Supplier<Command> TRANSFER_SEQUENCE_AUTO;
+
+    // Utility
+    private static final Supplier<Command> STOP;
+
+    // ==================== STATIC COMMANDS (For Control Mapping) ====================
+
+    // Primary Actions
+    public static Command INDEX;           // Index artifact into current slot
+    public static Command TRANSFER;        // Transfer artifact from current slot
+    public static Command INDEX_AT_TRANSFER; // Move to transfer, then index in other slots
+    public static Command NEXT_SLOT;       // Rotate to next slot
+
+    // Color-Specific Transfers
+    public static Command TRANSFER_GREEN_ARTIFACT;
+    public static Command TRANSFER_PURPLE_ARTIFACT;
+
+    // Sequence Transfers
+    public static Command SEQUENCE_PPG;
+    public static Command SEQUENCE_PGP;
+    public static Command SEQUENCE_GPP;
+    public static Command SEQUENCE_AUTO;   // Auto-detect motif and transfer
+
+    // Utility
+    public static Command STOP_INDEXER;
+    public static Command RESET_INDEXER;
 
     static {
         Indexer indexer = Indexer.getInstance();
 
-        //-----------------------CALIBRATION------------------------------//
+        //===================== SUPPLIER COMMAND DEFINITIONS =====================//
 
-        // Calibrates the indexer rotor position
-        CALIBRATE = () -> Commands.sequence(
-                Commands.runOnce(() -> {
-                    System.out.println("Starting indexer calibration...");
-                    indexer.calibrateRotor();
-                }),
-                Commands.waitSeconds(0.5),
+        RESET = () -> Commands.sequence(
+                Commands.runOnce(() -> Log.i("IndexerCommands", "Resetting indexer...")),
+                Commands.runOnce(indexer::reset),
+                Commands.runOnce(indexer::calibrateRotor),
+                Commands.waitSeconds(0.3),
                 Commands.runOnce(() -> {
                     if (indexer.isCalibrated()) {
-                        System.out.println("Indexer calibration complete! Ready at slot 0");
+                        Log.i("IndexerCommands", "Reset complete - ready at slot 0");
                     } else {
-                        System.out.println("WARNING: Indexer calibration failed!");
+                        Log.e("IndexerCommands", "Reset failed - calibration error");
                         indexer.setState(IndexerState.ERROR);
                     }
                 })
         );
 
-        //----------------------Position Movement-------------------------------------------//
-
-        /**
-         * Moves indexer to entry position using PID
-         */
-        MOVE_TO_ENTRY = () -> Commands.sequence(
-                Commands.runOnce(() -> {
-                    System.out.println("Moving to entry position...");
-                    indexer.moveToEntryPosition();
-                }),
-                Commands.waitUntil(indexer::atTargetPosition)
-                        .withTimeout((long) MOVEMENT_TIMEOUT),
-                Commands.runOnce(() -> {
-                    if (indexer.atTargetPosition()) {
-                        System.out.println("Reached entry position");
-                    } else {
-                        System.out.println("WARNING: Failed to reach entry position (timeout)");
-                        indexer.stopRotor();
-                    }
-                })
-        );
-
-        /**
-         * Moves indexer to transfer position using PID
-         */
-        MOVE_TO_TRANSFER = () -> Commands.sequence(
-                Commands.runOnce(() -> {
-                    System.out.println("Moving to transfer position...");
-                    indexer.moveToTransferPosition();
-                }),
-                Commands.waitUntil(indexer::atTargetPosition)
-                        .withTimeout((long) MOVEMENT_TIMEOUT),
-                Commands.runOnce(() -> {
-                    if (indexer.atTargetPosition()) {
-                        System.out.println("Reached transfer position");
-                    } else {
-                        System.out.println("WARNING: Failed to reach transfer position (timeout)");
-                        indexer.stopRotor();
-                    }
-                })
-        );
-
-        /**
-         * Rotates to the next slot using PID
-         */
         ROTATE_NEXT = () -> Commands.sequence(
                 Commands.runOnce(() -> {
-                    int currentSlot = indexer.getCurrentSlot();
-                    System.out.println("Rotating from slot " + currentSlot + " to slot " + ((currentSlot + 1) % 3));
+                    Log.i("IndexerCommands", "Rotating to next slot...");
                     indexer.rotateToNextSlot();
                 }),
-                Commands.waitUntil(indexer::atTargetPosition)
-                        .withTimeout((long) MOVEMENT_TIMEOUT),
+                Commands.waitUntil(indexer::isAtTargetPosition).withTimeout((long) ROTATION_TIMEOUT),
                 Commands.runOnce(() -> {
-                    if (indexer.atTargetPosition()) {
-                        System.out.println("Now at slot " + indexer.getCurrentSlot());
+                    if (!indexer.isAtTargetPosition()) {
+                        Log.e("IndexerCommands", "Rotation timeout!");
+                        indexer.setState(IndexerState.ERROR);
                     } else {
-                        System.out.println("WARNING: Failed to reach target slot (timeout)");
-                        indexer.stopRotor();
+                        Log.i("IndexerCommands", "Now at slot " + indexer.getCurrentSlot());
                     }
                 })
         );
 
-        //---------------------------------------BALL INTAKE/INDEXING-----------------------//
-
-        /*
-         * Indexes a single ball into the current slot. Algorithm:
-         * 1. Wait for ball to fully enter current slot (both sensors detect)
-         * 2. Detect and log ball color
-         * 3. Rotate to next slot if not full
-         */
-        INDEX_BALL = () -> Commands.sequence(
+        INDEX_ARTIFACT = () -> Commands.sequence(
                 Commands.runOnce(() -> {
                     if (indexer.isFull()) {
-                        System.out.println("ERROR: Indexer is full! Cannot index more balls.");
+                        Log.e("IndexerCommands", "Indexer is full! Cannot index more artifacts.");
                         return;
                     }
 
                     if (!indexer.isCurrentSlotAvailable()) {
-                        System.out.println("ERROR: Current slot " + indexer.getCurrentSlot() + " is occupied!");
+                        Log.e("IndexerCommands", "Current slot " + indexer.getCurrentSlot() + " is occupied!");
                         return;
                     }
 
-                    System.out.println("Waiting for ball in slot " + indexer.getCurrentSlot() + "...");
+                    Log.i("IndexerCommands", "Waiting for artifact in slot " + indexer.getCurrentSlot() + "...");
                     indexer.setState(IndexerState.INDEXING);
                 }),
 
-                // Wait for ball to be entering the slot
+                // Wait for artifact to enter slot
                 Commands.waitUntil(() -> indexer.isArtifactInSlot(indexer.getCurrentSlot()))
                         .withTimeout((long) 5.0),
 
-                // Wait for ball to fully enter (both sensors)
-                Commands.waitSeconds(BALL_SETTLE_TIME),
-                Commands.waitUntil(() -> indexer.isArtifactInSlot(indexer.getCurrentSlot()))
-                        .withTimeout((long) 2.0),
+                // Wait for artifact to settle
+                Commands.waitSeconds(ARTIFACT_SETTLE_TIME),
 
-                // Verify and log ball
+                // Update tracking and verify
                 Commands.runOnce(() -> {
-                    int slot = indexer.getCurrentSlot();
+                    indexer.updateArtifactTracking();
 
+                    int slot = indexer.getCurrentSlot();
                     if (!indexer.isArtifactInSlot(slot)) {
-                        System.out.println("WARNING: Ball not fully detected in slot " + slot);
+                        Log.e("IndexerCommands", "Artifact not detected in slot " + slot + " after settle time");
                         indexer.setState(IndexerState.ERROR);
                         return;
                     }
 
                     ArtifactColor color = indexer.detectColorInSlot(slot);
-                    System.out.println("Ball indexed in slot " + slot + ": " + color);
-                    System.out.println("Total balls: " + indexer.getArtifactCount());
+                    Log.i("IndexerCommands", "Artifact indexed in slot " + slot + ": " + color);
+                    Log.i("IndexerCommands", "Total artifacts: " + indexer.getArtifactCount());
 
                     indexer.setState(IndexerState.IDLE);
                 }),
@@ -171,213 +139,257 @@ public class IndexerCommands {
                 // Rotate to next slot if not full
                 Commands.either(
                         ROTATE_NEXT.get(),
-                        Commands.runOnce(() -> System.out.println("Indexer is now full!")),
+                        Commands.runOnce(() -> Log.i("IndexerCommands", "Indexer is now full!")),
                         () -> !indexer.isFull()
                 )
         );
 
-        //------------------------PREPARE SPECIFIC COLOR---------------------//
-
-        // Rotates indexer to position green ball at current slot for dispensing
-        PREPARE_GREEN_BALL = () -> prepareBall(ArtifactColor.GREEN);
-
-        // Rotates indexer to position purple ball at current slot for dispensing
-
-        PREPARE_PURPLE_BALL = () -> prepareBall(ArtifactColor.PURPLE);
-        //----------------------DISPENSING-----------------------//
-
-        // Dispenses the ball from the current slot
-        DISPENSE = () -> Commands.sequence(
+        TRANSFER_CURRENT_ARTIFACT = () -> Commands.sequence(
                 Commands.runOnce(() -> {
                     int slot = indexer.getCurrentSlot();
                     ArtifactColor color = indexer.getArtifactColorInSlot(slot);
-                    System.out.println("Dispensing " + color + " ball from slot " + slot + "...");
-                    indexer.setState(IndexerState.DISPENSING);
+                    Log.i("IndexerCommands", "Transferring " + color + " artifact from slot " + slot + "...");
+                    indexer.setState(IndexerState.TRANSFERRING);
                 }),
 
-                // Open gate
-                Commands.runOnce(indexer::startHopper),
-                Commands.waitSeconds(HOPPER_DELAY),
-
-                // Rotate to push ball out
-                Commands.runOnce(indexer::dispenseArtifact),
-                Commands.waitSeconds(DISPENSE_DURATION),
-
-                // Stop rotation
-                Commands.runOnce(indexer::stopRotor),
-                Commands.waitSeconds(VERIFICATION_DELAY),
-
-                // Verify ball was dispensed
-                Commands.runOnce(() -> {
-                    int slot = indexer.getCurrentSlot();
-
-                    if (!indexer.isArtifactDispensed(slot)) {
-                        System.out.println("WARNING: Ball still detected in slot " + slot + " after dispense!");
-                        System.out.println("Ball may be stuck. Consider running REJECT command.");
-                        indexer.setState(IndexerState.ERROR);
-                    } else {
-                        System.out.println("Ball dispensed successfully from slot " + slot);
-                        indexer.getSlot(slot).clear(); // Clear the slot manually if needed
-                        System.out.println("Remaining balls: " + indexer.getArtifactCount());
-                        indexer.setState(IndexerState.IDLE);
-                    }
-                }),
-
-                // Close gate
-                Commands.runOnce(indexer::stopHopper)
-        );
-
-        // Full sequence: prepare and dispense green ball
-        DISPENSE_GREEN = () -> Commands.sequence(
-                PREPARE_GREEN_BALL.get(),
-                DISPENSE.get()
-        );
-
-        // Full sequence: prepare and dispense purple ball
-        DISPENSE_PURPLE = () -> Commands.sequence(
-                PREPARE_PURPLE_BALL.get(),
-                DISPENSE.get()
-        );
-
-        //---------------------REJECTION-------------------
-
-        /* Rejection Algorithm:
-         * Rejects the ball from the current slot
-         * Opens gate and reverses rotation to eject ball
-         */
-        REJECT_CURRENT_BALL = () -> Commands.sequence(
-                Commands.runOnce(() -> {
-                    int slot = indexer.getCurrentSlot();
-                    ArtifactColor color = indexer.getArtifactColorInSlot(slot);
-                    System.out.println("Rejecting " + color + " ball from slot " + slot + "...");
-                    indexer.setState(IndexerState.REJECTING);
-                }),
-                // Snapshot the slot we intend to eject
-                Commands.runOnce(() -> indexer.getSlot(indexer.getCurrentSlot())),
+                // Snapshot the slot we're transferring from
                 Commands.defer(() -> {
-                    final int snapshotSlot = indexer.getCurrentSlot();
+                    final int transferSlot = indexer.getCurrentSlot();
+
                     return Commands.sequence(
-                            // Start Hopper
+                            // Rotate to transfer position
+                            Commands.runOnce(indexer::rotateToTransferPosition),
+                            Commands.waitUntil(indexer::isAtTargetPosition).withTimeout((long) ROTATION_TIMEOUT),
+
+                            // Start hopper to kick artifact
                             Commands.runOnce(indexer::startHopper),
-                            Commands.waitSeconds(HOPPER_DELAY),
-
-                            // verify the ball in the og slot was actually ejected
-                            Commands.runOnce(() -> {
-                                if (indexer.isArtifactInSlot(snapshotSlot)) {
-                                    System.out.println("WARNING: Ball still in slot " + snapshotSlot + " after rejection!");
-                                    indexer.setState(IndexerState.ERROR);
-                                } else {
-                                    System.out.println("Ball rejected successfully from slot " + snapshotSlot);
-                                    indexer.getSlot(snapshotSlot).clear();
-                                    indexer.setState(IndexerState.IDLE);
-                                }
-                            }),
-
-
-                            // Stop and verify
-                            Commands.runOnce(indexer::stopRotor),
-                            Commands.waitSeconds(VERIFICATION_DELAY),
-
-                            Commands.runOnce(() -> {
-                                int slot = indexer.getCurrentSlot();
-
-                                if (indexer.isArtifactInSlot(slot)) {
-                                    System.out.println("WARNING: Ball still in slot " + slot + " after rejection attempt!");
-                                    indexer.setState(IndexerState.ERROR);
-                                } else {
-                                    System.out.println("Ball rejected successfully from slot " + slot);
-                                    indexer.getSlot(slot).clear();
-                                    indexer.setState(IndexerState.IDLE);
-                                }
-                            }),
-
-                            // stop hopper and return precisely to the original alignment
+                            Commands.waitSeconds(HOPPER_KICK_DURATION),
                             Commands.runOnce(indexer::stopHopper),
-                            Commands.runOnce(() -> indexer.rotateToSlot(snapshotSlot)),
-                            Commands.waitSeconds(ROTATION_DURATION),
-                            Commands.runOnce(indexer::stopRotor)
+
+                            // Wait and verify transfer
+                            Commands.waitSeconds(VERIFICATION_DELAY),
+                            Commands.runOnce(() -> {
+                                indexer.updateArtifactTracking();
+
+                                if (!indexer.isArtifactTransferred(transferSlot)) {
+                                    Log.e("IndexerCommands", "Artifact still in slot " + transferSlot + " after transfer!");
+                                    indexer.setState(IndexerState.ERROR);
+                                } else {
+                                    Log.i("IndexerCommands", "Artifact transferred successfully from slot " + transferSlot);
+                                    indexer.getSlot(transferSlot).clear();
+                                    Log.i("IndexerCommands", "Remaining artifacts: " + indexer.getArtifactCount());
+                                    indexer.setState(IndexerState.IDLE);
+                                }
+                            }),
+
+                            // Return to slot alignment
+                            Commands.runOnce(() -> indexer.rotateToSlot(transferSlot)),
+                            Commands.waitUntil(indexer::isAtTargetPosition).withTimeout((long) ROTATION_TIMEOUT)
                     );
                 })
         );
 
-        //---------------------UTIL.---------------------------------//
+        TRANSFER_GREEN = () -> prepareAndTransferArtifact(ArtifactColor.GREEN);
+        TRANSFER_PURPLE = () -> prepareAndTransferArtifact(ArtifactColor.PURPLE);
 
-        // Stops all indexer motion immediately
+        TRANSFER_SEQUENCE_PPG = () -> Commands.sequence(
+                Commands.runOnce(() -> Log.i("IndexerCommands", "Starting PPG sequence transfer...")),
+                TRANSFER_PURPLE.get(),
+                TRANSFER_PURPLE.get(),
+                TRANSFER_GREEN.get(),
+                Commands.runOnce(() -> Log.i("IndexerCommands", "PPG sequence complete"))
+        );
+
+        TRANSFER_SEQUENCE_PGP = () -> Commands.sequence(
+                Commands.runOnce(() -> Log.i("IndexerCommands", "Starting PGP sequence transfer...")),
+                TRANSFER_PURPLE.get(),
+                TRANSFER_GREEN.get(),
+                TRANSFER_PURPLE.get(),
+                Commands.runOnce(() -> Log.i("IndexerCommands", "PGP sequence complete"))
+        );
+
+        TRANSFER_SEQUENCE_GPP = () -> Commands.sequence(
+                Commands.runOnce(() -> Log.i("IndexerCommands", "Starting GPP sequence transfer...")),
+                TRANSFER_GREEN.get(),
+                TRANSFER_PURPLE.get(),
+                TRANSFER_PURPLE.get(),
+                Commands.runOnce(() -> Log.i("IndexerCommands", "GPP sequence complete"))
+        );
+
+        TRANSFER_SEQUENCE_AUTO = () -> Commands.sequence(
+                Commands.runOnce(() -> Log.i("IndexerCommands", "Detecting artifact motif from vision...")),
+
+                Commands.defer(() -> {
+                    // Get motif from vision
+                    String motif = getMotifFromVision();
+
+                    Log.i("IndexerCommands", "Detected motif: " + motif);
+
+                    // Execute appropriate sequence based on motif
+                    switch (motif) {
+                        case "PPG":
+                            return TRANSFER_SEQUENCE_PPG.get();
+                        case "PGP":
+                            return TRANSFER_SEQUENCE_PGP.get();
+                        case "GPP":
+                            return TRANSFER_SEQUENCE_GPP.get();
+                        default:
+                            return Commands.runOnce(() -> {
+                                Log.e("IndexerCommands", "Unknown motif detected: " + motif);
+                                Log.e("IndexerCommands", "Defaulting to PPG sequence");
+                            }).andThen(TRANSFER_SEQUENCE_PPG.get());
+                    }
+                })
+        );
 
         STOP = () -> Commands.runOnce(() -> {
             indexer.stopRotor();
             indexer.stopHopper();
             indexer.setState(IndexerState.IDLE);
-            System.out.println("Indexer stopped");
+            Log.i("IndexerCommands", "Indexer stopped");
         });
-
-        // Resets indexer to initial state and recalibrates
-
-        RESET = () -> Commands.sequence(
-                Commands.runOnce(() -> System.out.println("Resetting indexer...")),
-                Commands.runOnce(indexer::reset),
-                CALIBRATE.get(),
-                Commands.runOnce(() -> System.out.println("Indexer reset complete"))
-        );
     }
 
-    //--------------------------------HELPER METHODS--------------------------------//
+    //===================== STATIC COMMAND DEFINITIONS (For Control Mapping) =====================//
 
-    // Helper method to prepare a ball of specific color for dispensing
-    private static Command prepareBall(ArtifactColor targetColor) {
+    static {
         Indexer indexer = Indexer.getInstance();
 
-        int targetSlot = indexer.findArtifactSlot(targetColor);
-        int currentSlot = indexer.getCurrentSlot();
+        // Primary indexer actions
+        INDEX = Commands.deferredProxy(() -> {
+            if (indexer.isFull()) {
+                Log.e("IndexerCommands", "Cannot index - indexer is full");
+                return Commands.none();
+            }
+            return Commands.defer(INDEX_ARTIFACT, indexer);
+        });
 
-        if (targetSlot == -1) {
-            return Commands.sequence(
-                    Commands.runOnce(() -> {
-                        System.out.println("ERROR: No " + targetColor + " ball found in indexer!");
-                        System.out.println("Available balls:");
-                        for (int i = 0; i < 3; i++) {
-                            System.out.println("  Slot " + i + ": " + indexer.getSlot(i));
-                        }
-                        indexer.setState(IndexerState.ERROR);
-                    })
-            );
-        }
+        TRANSFER = Commands.deferredProxy(() -> {
+            if (indexer.isEmpty()) {
+                Log.e("IndexerCommands", "Cannot transfer - indexer is empty");
+                return Commands.none();
+            }
+            return Commands.defer(TRANSFER_CURRENT_ARTIFACT, indexer);
+        });
 
-        // Steps to rotate (0, 1, or 2). If 0, we'll still dwell for one ROTATION_DURATION.
-        int steps = (targetSlot - currentSlot + 3) % 3;
-        double rotationWaitSeconds = ROTATION_DURATION * (steps == 0 ? 1 : steps);
+        NEXT_SLOT = Commands.deferredProxy(() -> Commands.defer(ROTATE_NEXT, indexer));
+
+        // Color-specific transfers
+        TRANSFER_GREEN_ARTIFACT = Commands.deferredProxy(() -> {
+            if (indexer.findArtifactSlot(ArtifactColor.GREEN) == -1) {
+                Log.e("IndexerCommands", "No green artifact in indexer");
+                return Commands.none();
+            }
+            return Commands.defer(TRANSFER_GREEN, indexer);
+        });
+
+        TRANSFER_PURPLE_ARTIFACT = Commands.deferredProxy(() -> {
+            if (indexer.findArtifactSlot(ArtifactColor.PURPLE) == -1) {
+                Log.e("IndexerCommands", "No purple artifact in indexer");
+                return Commands.none();
+            }
+            return Commands.defer(TRANSFER_PURPLE, indexer);
+        });
+
+        // Sequence transfers
+        SEQUENCE_PPG = Commands.deferredProxy(() -> Commands.defer(TRANSFER_SEQUENCE_PPG, indexer));
+        SEQUENCE_PGP = Commands.deferredProxy(() -> Commands.defer(TRANSFER_SEQUENCE_PGP, indexer));
+        SEQUENCE_GPP = Commands.deferredProxy(() -> Commands.defer(TRANSFER_SEQUENCE_GPP, indexer));
+
+        SEQUENCE_AUTO = Commands.deferredProxy(() -> {
+            if (indexer.isEmpty()) {
+                Log.e("IndexerCommands", "Cannot transfer sequence - indexer is empty");
+                return Commands.none();
+            }
+            return Commands.defer(TRANSFER_SEQUENCE_AUTO, indexer);
+        });
+
+        // Utility commands
+        STOP_INDEXER = Commands.deferredProxy(() -> Commands.defer(STOP, indexer));
+        RESET_INDEXER = Commands.deferredProxy(() -> Commands.defer(RESET, indexer));
+    }
+
+    //================================ HELPER METHODS ================================//
+
+    /**
+     * Helper method to prepare and transfer an artifact of specific color
+     */
+    private static Command prepareAndTransferArtifact(ArtifactColor targetColor) {
+        Indexer indexer = Indexer.getInstance();
 
         return Commands.sequence(
                 Commands.runOnce(() -> {
-                    System.out.println("Searching for " + targetColor + " ball...");
+                    Log.i("IndexerCommands", "Searching for " + targetColor + " artifact...");
+
+                    int targetSlot = indexer.findArtifactSlot(targetColor);
+
+                    if (targetSlot == -1) {
+                        Log.e("IndexerCommands", "No " + targetColor + " artifact found in indexer!");
+                        Log.e("IndexerCommands", "Available artifacts:");
+                        for (int i = 0; i < 3; i++) {
+                            Log.e("IndexerCommands", "  Slot " + i + ": " + indexer.getSlot(i));
+                        }
+                        indexer.setState(IndexerState.ERROR);
+                        return;
+                    }
+
+                    int currentSlot = indexer.getCurrentSlot();
                     if (currentSlot != targetSlot) {
-                        System.out.println("Rotating from slot " + currentSlot + " to slot " + targetSlot + " (" + steps + " step"
-                                + (steps == 1 ? "" : "s") + ")");
+                        int stepsForward = (targetSlot - currentSlot + 3) % 3;
+                        Log.i("IndexerCommands", "Rotating " + stepsForward + " slot(s) forward from slot "
+                                + currentSlot + " to slot " + targetSlot);
                         indexer.rotateToSlot(targetSlot);
                     } else {
-                        System.out.println("Already at correct slot " + targetSlot);
+                        Log.i("IndexerCommands", "Already at correct slot " + targetSlot);
                     }
                 }),
 
-                // wait proportional to number of steps (or one duration if already aligned)
-                Commands.waitSeconds(rotationWaitSeconds),
+                // Wait for rotation to complete
+                Commands.waitUntil(indexer::isAtTargetPosition).withTimeout((long) ROTATION_TIMEOUT),
 
-                Commands.runOnce(indexer::stopRotor),
-                Commands.waitSeconds(VERIFICATION_DELAY),
-
-                // Verify correct color at current slot
                 Commands.runOnce(() -> {
-                    int s = indexer.getCurrentSlot();
-                    ArtifactColor detected = indexer.detectColorInSlot(s);
+                    if (!indexer.isAtTargetPosition()) {
+                        Log.e("IndexerCommands", "Rotation timeout while preparing artifact!");
+                        indexer.setState(IndexerState.ERROR);
+                        return;
+                    }
+
+                    // Verify correct color at current slot
+                    int slot = indexer.getCurrentSlot();
+                    ArtifactColor detected = indexer.detectColorInSlot(slot);
+
                     if (detected == targetColor) {
-                        System.out.println("Confirmed: " + targetColor + " ball ready at slot " + s);
-                        indexer.setState(IndexerState.IDLE);
+                        Log.i("IndexerCommands", "Confirmed: " + targetColor + " artifact ready at slot " + slot);
                     } else {
-                        System.out.println("WARNING: Expected " + targetColor + " but detected " + detected + " at slot " + s);
-                        System.out.println("Ball tracking may be out of sync. Consider resetting indexer.");
+                        Log.e("IndexerCommands", "Expected " + targetColor + " but detected " + detected + " at slot " + slot);
+                        Log.e("IndexerCommands", "Artifact tracking may be out of sync. Consider resetting indexer.");
                         indexer.setState(IndexerState.ERROR);
                     }
-                })
+                }),
+
+                // Transfer the artifact
+                TRANSFER_CURRENT_ARTIFACT.get()
         );
+    }
+
+    /**
+     * Gets artifact motif from vision system
+     * Uses ATVision.getMotif() which returns the AprilTag metadata name (e.g., "PPG", "PGP", "GPP")
+     *
+     * @return String motif ("PPG", "PGP", "GPP", or "UNKNOWN")
+     */
+    private static String getMotifFromVision() {
+        ATVision vision = ATVision.getInstance();
+        String motif = vision.getMotif();
+
+        Log.i("IndexerCommands", "Vision detected motif: " + motif);
+
+        // Validate motif
+        if (motif == null || motif.equals("UNKNOWN")) {
+            Log.e("IndexerCommands", "No valid motif detected from vision, defaulting to PPG");
+            return "PPG"; // Default fallback
+        }
+
+        return motif;
     }
 }

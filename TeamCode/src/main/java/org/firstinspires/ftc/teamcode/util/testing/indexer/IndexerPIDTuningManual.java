@@ -37,7 +37,6 @@ public class IndexerPIDTuningManual extends OpMode {
         indexer.initialize();
         rotorMotor = RobotMap.getInstance().INDEXER_ROTOR;
         indexer.onTeleopInit();
-        rotorMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         telemetry.update();
     }
@@ -51,7 +50,7 @@ public class IndexerPIDTuningManual extends OpMode {
     public void loop() {
         // Manual control with left stick
         double power = -gamepad1.left_stick_y * 0.5; // Limit to 50% power
-        rotorMotor.setTargetPosition(power);
+        rotorMotor.setPower(power);
 
         // Display telemetry
         int currentPos = indexer.getCurrentPosition();
@@ -60,8 +59,8 @@ public class IndexerPIDTuningManual extends OpMode {
 
         telemetry.addData("Mode", gamepad1.y ? "MANUAL" : "PID");
         telemetry.addLine();
-        telemetry.addData("Current Position", rotorMotor.getCurrentPosition());
-        telemetry.addData("Target Position", rotorMotor.getTargetPosition());
+        telemetry.addData("Current Position", indexer.getCurrentPosition());
+        telemetry.addData("Target Position", indexer.getTargetPosition());
         telemetry.addData("Error", error);
         telemetry.addData("At Target?", indexer.atTargetPosition());
         telemetry.addLine();

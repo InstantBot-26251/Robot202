@@ -1,13 +1,19 @@
 package org.firstinspires.ftc.teamcode.indexer;
 
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ARTIFACT_PRESENCE_THRESHOLD;
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
+import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ENCODER_TICKS_PER_SLOT;
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.GREEN_THRESHOLD;
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.PURPLE_BLUE_THRESHOLD;
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.PURPLE_MIN_RATIO;
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.PURPLE_RED_THRESHOLD;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_DISPENSE_SPEED;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_INDEX_SPEED;
+import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_ERROR_TOLERANCE;
+import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_MAX_POWER;
+import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_MIN_POWER;
+import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_kD;
+import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_kI;
+import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_kP;
+import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.TRANSFER_POSITION_OFFSET;
 
 import android.util.Log;
 
@@ -19,6 +25,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.indexer.Enums.IndexerState;
 import org.firstinspires.ftc.teamcode.indexer.Enums.ArtifactColor;
+import org.firstinspires.ftc.teamcode.robot.Enigma;
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
 import org.firstinspires.ftc.teamcode.util.SubsystemTemplate;
 
@@ -29,7 +36,7 @@ public class Indexer extends SubsystemTemplate {
 
     // Hardware - 6 color sensors total (2 per slot as redundant backups)
     private DcMotorEx rotorMotor;
-    private CRServo hopperServo;
+    private CRServo hopper;
 
     // Slot 0 sensors (both scan same position)
     private RevColorSensorV3 slot0SensorA;  // Primary sensor for slot 0
@@ -44,16 +51,12 @@ public class Indexer extends SubsystemTemplate {
     private RevColorSensorV3 slot2SensorB; // Backup sensor for slot 2
 
     // PID Controller for position control
-    private PIDController pidController;
+    private PIDController rotorPid;
 
-    // PID Constants - TODO: Tune these values
-    private static final double kP = 0.01;
-    private static final double kI = 0.0;
-    private static final double kD = 0.0001;
 
     // Position Constants (encoder ticks) - TODO: Tune these values
     private static final int ENTRY_POSITION = 0;           // Position where balls enter
-    private static final int TRANSFER_POSITION = 1000;      // Position to transfer to shooter
+    private static final int TRANSFER_POSITION = 250;      // Position to transfer to shooter
     private static final int TICKS_PER_SLOT = 333;          // Encoder ticks for 120° rotation
     private static final int POSITION_TOLERANCE = 20;       // Acceptable error in ticks
 
@@ -61,9 +64,7 @@ public class Indexer extends SubsystemTemplate {
     // State tracking
     private IndexerState state = IndexerState.IDLE;
     private boolean isCalibrated = false;
-    private int currentSlot = 0; // Which slot is currently at entry position (0-2)
-    private int targetPosition = 0;
-    private boolean movingToPosition = false;
+    private int currentSlot = 0; // Which slot is currently aligned with intake (0-2)
 
     // Artifact storage - maps slot number (0-2) to artifact color and presence
     private Map<Integer, ArtifactSlot> slots = new HashMap<>();
@@ -79,7 +80,7 @@ public class Indexer extends SubsystemTemplate {
     }
 
     private Indexer() {
-        pidController = new PIDController(kP, kI, kD);
+        rotorPid = new PIDController(ROTOR_kP, ROTOR_kI, ROTOR_kD);
 
         // Initialize all slots as empty
         slots.put(0, new ArtifactSlot());
@@ -89,11 +90,12 @@ public class Indexer extends SubsystemTemplate {
 
     @Override
     public SubsystemTemplate initialize() {
+        telemetry = Enigma.getInstance().getTelemetry();
         RobotMap map = RobotMap.getInstance();
 
         // Get hardware directly from RobotMap
         rotorMotor = map.INDEXER_ROTOR;
-        hopperServo = map.INDEXER_HOPPER;
+        hopper = map.INDEXER_HOPPER;
 
         // Map color sensors to indexer slots
         slot0SensorA = map.COLOR1;  // Slot 0, Sensor A
@@ -103,8 +105,11 @@ public class Indexer extends SubsystemTemplate {
         slot2SensorA = map.COLOR5;  // Slot 2, Sensor A
         slot2SensorB = map.COLOR6;  // Slot 2, Sensor B
 
-        // Note: COLOR7 is available if needed for intake sensor
+        // Configure motor
+        rotorMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rotorMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+        stopHopper();
         return this;
     }
 
@@ -131,11 +136,15 @@ public class Indexer extends SubsystemTemplate {
             slot.clear();
         }
 
-//        stopRotor();
-//        stopHopper();
-
         rotorMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         rotorMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+
+        rotorPid.setSetPoint(0);
+
+        stopHopper();
+        stopRotor();
+
+        Log.i("Indexer", "Reset complete");
     }
 
     //------------------------------CALIBRATION---------------------------------------------//
@@ -145,7 +154,13 @@ public class Indexer extends SubsystemTemplate {
      * Calibrates the indexer by rotating until slot 0 is aligned with intake
      */
     public void calibrateRotor() {
+        if (isCalibrated) {
+            Log.i("Indexer", "Already calibrated");
+            return;
+        }
+
         state = IndexerState.CALIBRATING;
+        currentSlot = 0;
 
         // Reset encoder - assume we're starting at entry position
         rotorMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -153,8 +168,8 @@ public class Indexer extends SubsystemTemplate {
 
         rotorMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        currentSlot = 0;
-        targetPosition = ENTRY_POSITION;
+        rotorPid.setSetPoint(0);
+
         isCalibrated = true;
         state = IndexerState.IDLE;
 
@@ -163,124 +178,80 @@ public class Indexer extends SubsystemTemplate {
 
     //---------------------------------------POSITION CONTROL--------------------------//
     /**
-     * Moves indexer to entry position (where balls enter)
-     */
-    public void moveToEntryPosition() {
-        setTargetPosition(ENTRY_POSITION);
-    }
-
-    /**
-     * Moves indexer to transfer position (where balls transfer to shooter)
-     */
-    public void moveToTransferPosition() {
-        setTargetPosition(TRANSFER_POSITION);
-    }
-
-    /**
-     * Moves a specific slot to the entry position
-     * @param slotNumber 0, 1, or 2
-     */
-    public void moveSlotToEntry(int slotNumber) {
-        if (slotNumber < 0 || slotNumber > 2) return;
-
-        // Calculate position for this slot to be at entry
-        int position = ENTRY_POSITION + (slotNumber * TICKS_PER_SLOT);
-        setTargetPosition(position);
-        currentSlot = slotNumber;
-    }
-
-    /**
-     * Moves a specific slot to the transfer position
-     * @param slotNumber 0, 1, or 2
-     */
-    public void moveSlotToTransfer(int slotNumber) {
-        if (slotNumber < 0 || slotNumber > 2) return;
-
-        // Calculate position for this slot to be at transfer
-        int position = TRANSFER_POSITION + (slotNumber * TICKS_PER_SLOT);
-        setTargetPosition(position);
-    }
-
-    /**
-     * Sets target position and enables PID control
-     */
-    private void setTargetPosition(int position) {
-        targetPosition = position;
-        movingToPosition = true;
-        state = IndexerState.ROTATING;
-        pidController.setSetPoint(targetPosition);
-        Log.i("Indexer", "Moving to position: " + targetPosition);
-    }
-
-    public void setIndexerPower() {
-        double output = pidController.calculate(getCurrentPosition());
-        rotorMotor.setPower(output);
-    }
-    /**
-     * Checks if indexer has reached target position
-     */
-    public boolean atTargetPosition() {
-        int currentPos = rotorMotor.getCurrentPosition();
-        return Math.abs(currentPos - targetPosition) < POSITION_TOLERANCE;
-    }
-    /**
-     * Updates PID control - MUST be called in periodic()
-     */
-    private void updatePID() {
-        if (!movingToPosition) return;
-
-        int currentPos = rotorMotor.getCurrentPosition();
-        double power = pidController.calculate(currentPos, targetPosition);
-
-        // Clamp power to reasonable limits
-        power = Math.max(-0.8, Math.min(0.8, power));
-
-        rotorMotor.setPower(power);
-
-        // Check if reached target
-        if (atTargetPosition()) {
-            stopRotor();
-            movingToPosition = false;
-            state = IndexerState.IDLE;
-            Log.i("Indexer", "Reached target position: " + targetPosition);
-        }
-    }
-
-    /**
-     * Gets current encoder position
-     */
-    public int getCurrentPosition() {
-        return rotorMotor.getCurrentPosition();
-    }
-
-    //------------------------------------SLOT MANAGEMENT-----------------------//
-
-    /**
-     * Rotates to the next slot at entry position
-     */
-    public void rotateToNextSlot() {
-        if (!isCalibrated) return;
-
-        int nextSlot = (currentSlot + 1) % 3;
-        moveSlotToEntry(nextSlot);
-    }
-
-    /**
-     * Rotates specific slot to entry position
+     * Rotates to a specific slot number (0-2)
+     * Always rotates forward only - never backward
      */
     public void rotateToSlot(int targetSlot) {
-        if (!isCalibrated || targetSlot < 0 || targetSlot > 2) return;
+        if (!isCalibrated || targetSlot < 0 || targetSlot > 2) {
+            Log.e("Indexer", "Cannot rotate: not calibrated or invalid slot " + targetSlot);
+            return;
+        }
 
-        moveSlotToEntry(targetSlot);
+        if (currentSlot == targetSlot) {
+            Log.i("Indexer", "Already at slot " + targetSlot);
+            return;
+        }
+
+        state = IndexerState.ROTATING;
+
+        // Calculate forward rotation distance (always forward, never backward)
+        int slotsToRotate = (targetSlot - currentSlot + 3) % 3;
+
+        // Calculate target encoder position (always add, never subtract)
+        double targetPos = rotorMotor.getCurrentPosition() + (slotsToRotate * ENCODER_TICKS_PER_SLOT);
+        rotorPid.setSetPoint(targetPos);
+
+        currentSlot = targetSlot;
+
+        Log.i("Indexer", "Rotating " + slotsToRotate + " slot(s) forward to slot " + targetSlot);
     }
 
+    /**
+     * Rotates to the next slot (forward only)
+     */
+    public void rotateToNextSlot() {
+        int nextSlot = (currentSlot + 1) % 3;
+        rotateToSlot(nextSlot);
+    }
+
+    /**
+     * Rotates to transfer position (where hopper kicks artifacts to shooter)
+     */
+    public void rotateToTransferPosition() {
+        if (!isCalibrated) {
+            Log.e("Indexer", "Cannot rotate to transfer: not calibrated");
+            return;
+        }
+
+        state = IndexerState.ROTATING;
+
+        // Calculate target position based on current slot
+        double currentTargetPos = currentSlot * ENCODER_TICKS_PER_SLOT;
+        double transferPos = currentTargetPos + TRANSFER_POSITION_OFFSET;
+
+        rotorPid.setSetPoint(transferPos);
+
+        Log.i("Indexer", "Rotating to transfer position from slot " + currentSlot);
+    }
+
+    /**
+     * Stops rotor motor
+     */
     public void stopRotor() {
         rotorMotor.setPower(0);
-        movingToPosition = false;
         if (state == IndexerState.ROTATING) {
             state = IndexerState.IDLE;
         }
     }
+
+    /**
+     * Checks if rotor has reached target position
+     */
+    public boolean isAtTargetPosition() {
+        double error = Math.abs(rotorMotor.getCurrentPosition() - rotorPid.getSetPoint());
+        return error < ROTOR_ERROR_TOLERANCE;
+    }
+
 
     //------------------------ARTIFACT DETECTION---------------------------------------------//
 
@@ -327,12 +298,12 @@ public class Indexer extends SubsystemTemplate {
      * Generic artifact presence check for any sensor
      */
     private boolean isArtifactPresent(RevColorSensorV3 sensor) {
-        int red = sensor.red();
         int green = sensor.green();
+        int red = sensor.red();
         int blue = sensor.blue();
 
         // Artifact present if any color value exceeds threshold
-        return green > GREEN_THRESHOLD || (red > PURPLE_RED_THRESHOLD && blue > PURPLE_BLUE_THRESHOLD);
+        return (green > GREEN_THRESHOLD) || (red > PURPLE_RED_THRESHOLD && blue > PURPLE_BLUE_THRESHOLD);
     }
 
     /**
@@ -358,7 +329,7 @@ public class Indexer extends SubsystemTemplate {
         if (aHasArtifact && !bHasArtifact) {
             return classifyColor(sensorA.red(), sensorA.green(), sensorA.blue());
         }
-        else if (bHasArtifact && !aHasArtifact) {
+        else if (!aHasArtifact) {
             return classifyColor(sensorB.red(), sensorB.green(), sensorB.blue());
         }
 
@@ -374,12 +345,6 @@ public class Indexer extends SubsystemTemplate {
      * Classifies RGB values into artifact color (GREEN or PURPLE only)
      */
     private ArtifactColor classifyColor(int red, int green, int blue) {
-        // No artifact present
-//        if (red < ARTIFACT_PRESENCE_THRESHOLD &&
-//                green < ARTIFACT_PRESENCE_THRESHOLD &&
-//                blue < ARTIFACT_PRESENCE_THRESHOLD) {
-//            return ArtifactColor.NONE;
-//        }
 
         // Detect GREEN - green channel dominant
         if (green > GREEN_THRESHOLD && green > red && green > blue) {
@@ -411,29 +376,29 @@ public class Indexer extends SubsystemTemplate {
     public void updateArtifactTracking() {
         for (int i = 0; i < 3; i++) {
             ArtifactSlot slot = slots.get(i);
+            if (slot == null) continue;
+
             boolean artifactPresent = isArtifactInSlot(i);
             int confidence = getDetectionConfidence(i);
 
-            if (artifactPresent && slot != null) {
+            if (artifactPresent) {
                 // Artifact detected in slot
-                if (!slot.getHasConfirmedArtifact()) {
+                if (!slot.hasConfirmedArtifact()) {
                     // New artifact detected
-                    slot.color = detectColorInSlot(i);
+                    ArtifactColor color = detectColorInSlot(i);
+                    slot.setColor(color);
                     slot.setHasConfirmedArtifact(true);
                     slot.setDetectionConfidence(confidence);
 
-                    if (confidence == 2) {
-                        Log.i("Artifact detected in slot ", i + ": " + slot.color + " (BOTH sensors)");
-                    } else {
-                        Log.i("Artifact detected in slot ", + i + ": " + slot.color + " (ONE sensor - hole in artifact?)");
-                    }
+                    String confidenceStr = confidence == 2 ? "BOTH sensors" : "ONE sensor";
+                    Log.i("Indexer", "Artifact detected in slot " + i + ": " + color + " (" + confidenceStr + ")");
                 } else {
                     // Update confidence for existing artifact
                     slot.setDetectionConfidence(confidence);
                 }
             } else {
                 // No artifact detected
-                if (slot.getHasConfirmedArtifact()) {
+                if (slot.hasConfirmedArtifact()) {
                     // Artifact has left the slot
                     Log.i("Artifact left slot ", i +"");
                     slot.clear();
@@ -448,7 +413,8 @@ public class Indexer extends SubsystemTemplate {
      */
     public int findArtifactSlot(ArtifactColor targetColor) {
         for (int i = 0; i < 3; i++) {
-            if (slots.get(i).color == targetColor && slots.get(i).getHasConfirmedArtifact()) {
+            ArtifactSlot slot = slots.get(i);
+            if (slot != null && slot.getColor() == targetColor && slot.hasConfirmedArtifact()) {
                 return i;
             }
         }
@@ -461,68 +427,25 @@ public class Indexer extends SubsystemTemplate {
     public int getArtifactCount() {
         int count = 0;
         for (ArtifactSlot slot : slots.values()) {
-            if (slot.getHasConfirmedArtifact()) count++;
+            if (slot.hasConfirmedArtifact()) count++;
         }
         return count;
-    }
-
-    /**
-     * Checks if indexer is full (all 3 slots occupied)
-     */
-    public boolean isFull() {
-        return getArtifactCount() == 3;
-    }
-
-    /**
-     * Checks if indexer is empty
-     */
-    public boolean isEmpty() {
-        return getArtifactCount() == 0;
-    }
-
-    /**
-     * Gets the current slot aligned with intake
-     */
-    public int getCurrentSlot() {
-        return currentSlot;
-    }
-
-    /**
-     * Checks if current slot is available for a new artifact
-     */
-    public boolean isCurrentSlotAvailable() {
-        return !slots.get(currentSlot).getHasConfirmedArtifact();
     }
 
     //---------------------------------HOPPER CONTROL--------------------------//
 
     public void startHopper() {
-        hopperServo.setPower(1);
+        hopper.setPower(1);
     }
 
     public void stopHopper() {
-        hopperServo.setPower(0);
+        hopper.setPower(0);
     }
 
-
-
-    //---------------------------------DISPENSING---------------------------//
-    /**
-     * Dispenses the artifact from the current slot
-     */
-    public void dispenseArtifact() {
-        state = IndexerState.DISPENSING;
-        startHopper();
-        rotorMotor.setPower(ROTOR_DISPENSE_SPEED);
-    }
-
-    /**
-     * Checks if artifact has been successfully dispensed from current slot
-     * Artifact should no longer be detected by either sensor
-     */
-    public boolean isArtifactDispensed(int slotNumber) {
+    public boolean isArtifactTransferred(int slotNumber) {
         return !isArtifactInSlot(slotNumber);
     }
+
     //-----------------------------SENSOR HELPER METHODS-------------------------//
 
     private RevColorSensorV3 getSensorA(int slotNumber) {
@@ -557,6 +480,24 @@ public class Indexer extends SubsystemTemplate {
         return isCalibrated;
     }
 
+    public int getCurrentSlot() {
+        return currentSlot;
+    }
+
+    public boolean isCurrentSlotAvailable() {
+        ArtifactSlot slot = slots.get(currentSlot);
+        return slot != null && !slot.hasConfirmedArtifact();
+    }
+
+    public boolean isFull() {
+        return getArtifactCount() >= 3;
+    }
+
+    public boolean isEmpty() {
+        return getArtifactCount() == 0;
+    }
+
+
     public Map<Integer, ArtifactSlot> getSlots() {
         return new HashMap<>(slots); // Return copy for safety
     }
@@ -567,23 +508,55 @@ public class Indexer extends SubsystemTemplate {
 
     public ArtifactColor getArtifactColorInSlot(int slotNumber) {
         ArtifactSlot slot = slots.get(slotNumber);
-        return slot != null ? slot.color : ArtifactColor.NONE;
+        return slot != null ? slot.getColor() : ArtifactColor.NONE;
     }
 
-    public boolean isMoving() {
-        return movingToPosition;
+    public int getRotorPosition() {
+        return rotorMotor.getCurrentPosition();
     }
 
-    public int getTargetPosition() {
-        return targetPosition;
+    public int getRotorTarget() {
+        return rotorMotor.getTargetPosition();
     }
+
+    /**
+     * For debugging and PID tuning
+     */
+    public void updatePID() {
+        rotorPid.setPID(ROTOR_kP, ROTOR_kI, ROTOR_kD);
+    }
+
 
     @Override
     public void periodic() {
         updatePID();
-        double output = pidController.calculate(getCurrentPosition());
-        // Continuously update artifact tracking
-        updateArtifactTracking();
+        if (state == IndexerState.ROTATING) {
+            double output = rotorPid.calculate(rotorMotor.getCurrentPosition());
+
+            //clamp output
+            output = Math.max(ROTOR_MIN_POWER, Math.min(ROTOR_MAX_POWER, output));
+
+            rotorMotor.setPower(output);
+
+            if (isAtTargetPosition()) {
+                stopRotor();
+                Log.i("Indexer", "Rotation complete - at slot " + currentSlot);
+            }
+        }
+        // Telemetry
+        if (telemetry != null) {
+            telemetry.addLine();
+            telemetry.addData("Indexer State", state);
+            telemetry.addData("Current Slot", currentSlot);
+            telemetry.addData("Artifact Count", getArtifactCount());
+            telemetry.addData("Rotor Pos", getRotorPosition());
+            telemetry.addData("Rotor Target", getRotorTarget());
+            telemetry.addData("At Target", isAtTargetPosition());
+
+            for (int i = 0; i < 3; i++) {
+                telemetry.addData("Slot " + i, slots.get(i));
+            }
+        }
     }
 
 }

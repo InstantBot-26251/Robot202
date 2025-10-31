@@ -5,7 +5,7 @@ public enum IndexerState {
     CALIBRATING,
     INDEXING,
     ROTATING,
-    DISPENSING,
+    TRANSFERRING,
     REJECTING,
     ERROR
 }

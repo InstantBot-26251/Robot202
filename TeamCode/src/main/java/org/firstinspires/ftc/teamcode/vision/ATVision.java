@@ -85,6 +85,21 @@ public class ATVision extends SubsystemTemplate {
         }
     }
 
+
+    public String getMotif() {
+        ArrayList<AprilTagDetection> detections = getDetections();
+
+        if (detections != null && !detections.isEmpty()) {
+            AprilTagDetection best = detections.get(0);
+
+            if (best != null && best.metadata != null && best.metadata.name != null) {
+                return best.metadata.name;   // e.g. "PGP"
+            }
+        }
+
+        return "UNKNOWN";
+    }
+
     public void stopStreaming() {
         visionPortal.stopStreaming();
     }
