@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.util.hardware.InstantServo;
 @TeleOp(name = "Hood Calibration", group = "Calibration")
 public class HoodTestingOpMode extends LinearOpMode {
 
+
     private Hood hood;
     private InstantServo hoodServo;
     private double testServoPos = 0.5;

@@ -54,13 +54,6 @@ public class Indexer extends SubsystemTemplate {
     private PIDController rotorPid;
 
 
-    // Position Constants (encoder ticks) - TODO: Tune these values
-    private static final int ENTRY_POSITION = 0;           // Position where balls enter
-    private static final int TRANSFER_POSITION = 250;      // Position to transfer to shooter
-    private static final int TICKS_PER_SLOT = 333;          // Encoder ticks for 120° rotation
-    private static final int POSITION_TOLERANCE = 20;       // Acceptable error in ticks
-
-
     // State tracking
     private IndexerState state = IndexerState.IDLE;
     private boolean isCalibrated = false;

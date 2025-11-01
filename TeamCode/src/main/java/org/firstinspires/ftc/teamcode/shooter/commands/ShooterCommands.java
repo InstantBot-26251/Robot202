@@ -105,8 +105,8 @@ public class ShooterCommands {
 
                         }
                     }
-                    double heightDiff = 0.5; // TODO: measure
-                    double flywheelRPM = 3000; // TODO: measure
+                    double heightDiff = 0.5;
+                    double flywheelRPM = FLYWHEEL_RPM; // TODO: measure
                     double wheelDiameter = MathPM.inchesToMeters(0.1); // TODO: measure
 
                     double angle = MathPM.calculateAngleFromRPM(
