@@ -10,7 +10,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class Chassis {
     public DcMotor fl, fr, bl, br;
-//    IMU imu;
+//    IMU imu; 1
 
     public Chassis(HardwareMap hardwareMap) {
         // Initialize motors
