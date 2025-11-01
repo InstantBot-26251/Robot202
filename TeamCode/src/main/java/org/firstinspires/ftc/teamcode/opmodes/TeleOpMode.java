@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import static org.firstinspires.ftc.teamcode.shooter.commands.ShooterCommands.AUTO_AIM;
-import static org.firstinspires.ftc.teamcode.shooter.commands.ShooterCommands.AUTO_AIM_AND_SHOOT;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -9,25 +8,22 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.teamcode.chassis.Chassis;
 import org.firstinspires.ftc.teamcode.indexer.Indexer;
 import org.firstinspires.ftc.teamcode.shooter.Shooter;
 import org.firstinspires.ftc.teamcode.shooter.Hood;
-import org.firstinspires.ftc.teamcode.util.testing.miscallenous.ChassisSimple;
 import org.firstinspires.ftc.teamcode.vision.ATVision;
 
 
 @TeleOp(name = "TeleOp", group = "opmodes")
 public class TeleOpMode extends OpMode {
     DcMotor fl, fr, bl, br;
-    ChassisSimple Chassis;
+    Chassis chassis;
     double x, y, rx;
-
-    private static final int DASHBOARD_FPS = 10;
 
     private Indexer indexer;
     private Shooter shooter;
     private Hood hood;
-
 
     private static final int SLOT_0 = 0;
     private static final int SLOT_1 = 680;
@@ -35,8 +31,6 @@ public class TeleOpMode extends OpMode {
 
     private static final double MANIP_RESPONSE = 1.5;
     private static final double DRIVER_RESPONSE = 1.5;
-    private FtcDashboard dashboard;
-    private MultipleTelemetry multiTelemetry;
 
     private ATVision vision;
 
@@ -62,7 +56,7 @@ public class TeleOpMode extends OpMode {
         fr = hardwareMap.get(DcMotor.class, "rf");
         bl = hardwareMap.get(DcMotor.class, "lr");
         br = hardwareMap.get(DcMotor.class, "rr");
-        Chassis = new ChassisSimple(hardwareMap);
+        chassis = new Chassis(hardwareMap);
     }
 
     @Override
@@ -126,10 +120,10 @@ public class TeleOpMode extends OpMode {
 
         // DRIVER CONTROLS
         if (gamepad1.y){
-            Chassis.resetYaw();
+            chassis.resetYaw();
         }
 
-        Chassis.drive(x, y, rx);
+        chassis.drive(x, y, rx);
 
         // Always run periodic
         indexer.periodic();
@@ -143,7 +137,6 @@ public class TeleOpMode extends OpMode {
         telemetry.addData("Slot", indexer.getCurrentSlot());
         telemetry.update();
     }
-
 
 
     private void snapIndexerToNearestSlot() {

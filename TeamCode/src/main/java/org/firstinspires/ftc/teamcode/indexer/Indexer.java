@@ -105,11 +105,9 @@ public class Indexer extends SubsystemTemplate {
 
         rotorPid.setSetPoint(getRotorPosition());
 
-
         rotorMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         rotorMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-//
 //        stopHopper();
 //        stopRotor();
 
@@ -179,7 +177,7 @@ public class Indexer extends SubsystemTemplate {
         int slotsToRotate = (targetSlot - currentSlot + 3) % 3;
 
         // Calculate target encoder position (always add, never subtract)
-        double targetPos = rotorMotor.getCurrentPosition() + (slotsToRotate * ENCODER_TICKS_PER_SLOT);
+        double targetPos = getRotorPosition() + (slotsToRotate * ENCODER_TICKS_PER_SLOT);
         rotorPid.setSetPoint(targetPos);
 
         currentSlot = targetSlot;
