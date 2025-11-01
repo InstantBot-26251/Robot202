@@ -31,12 +31,11 @@ public class IndexerPIDTuning extends OpMode {
     public static double kD = 0.0001;
 
     public static int ENTRY_POSITION = 0;
-    public static int TRANSFER_POSITION = 1000;
-    public static int TICKS_PER_SLOT = 333;
+    public static int TRANSFER_POSITION = 80;
+    public static int TICKS_PER_SLOT = 680;
     public static int POSITION_TOLERANCE = 20;
 
     private Indexer indexer;
-    private DcMotor rotorMotor;
 
     @Override
     public void init() {
@@ -44,8 +43,7 @@ public class IndexerPIDTuning extends OpMode {
 
         RobotMap.getInstance().init(hardwareMap);
         indexer = Indexer.getInstance();
-        indexer.initialize();
-        rotorMotor = RobotMap.getInstance().INDEXER_ROTOR;
+        indexer.initHardware();
         indexer.onTeleopInit();
 
         telemetry.addLine("Simple Indexer Tuner Ready!");

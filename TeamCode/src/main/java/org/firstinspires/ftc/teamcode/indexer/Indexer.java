@@ -89,32 +89,6 @@ public class Indexer extends SubsystemTemplate {
     }
 
     @Override
-    public SubsystemTemplate initialize() {
-        telemetry = Enigma.getInstance().getTelemetry();
-        RobotMap map = RobotMap.getInstance();
-
-        // Get hardware directly from RobotMap
-        rotorMotor = map.INDEXER_ROTOR;
-        hopper = map.INDEXER_HOPPER;
-
-        // Map color sensors to indexer slots
-        slot0SensorA = map.COLOR1;  // Slot 0, Sensor A
-        slot0SensorB = map.COLOR2;  // Slot 0, Sensor B
-        slot1SensorA = map.COLOR3;  // Slot 1, Sensor A
-        slot1SensorB = map.COLOR4;  // Slot 1, Sensor B
-        slot2SensorA = map.COLOR5;  // Slot 2, Sensor A
-        slot2SensorB = map.COLOR6;  // Slot 2, Sensor B
-
-        // Configure motor
-        rotorMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rotorMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-//        stopHopper();
-        return this;
-    }
-
-
-    @Override
     public void onAutonomousInit() {
         reset();
         calibrateRotor();
@@ -136,16 +110,30 @@ public class Indexer extends SubsystemTemplate {
             slot.clear();
         }
 
+        rotorPid.setSetPoint(getRotorPosition());
+
+
         rotorMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         rotorMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-        rotorPid.setSetPoint(getRotorPosition());
-
-        stopHopper();
-        stopRotor();
+//
+//        stopHopper();
+//        stopRotor();
 
         Log.i("Indexer", "Reset complete");
     }
+
+    public void initHardware() {
+        rotorMotor = (DcMotorEx) RobotMap.getInstance().INDEXER_ROTOR;
+        hopper = RobotMap.getInstance().INDEXER_HOPPER;
+//        slot0SensorA = RobotMap.getInstance().COLOR1;
+//        slot0SensorB = RobotMap.getInstance().COLOR2;
+//        slot1SensorA = RobotMap.getInstance().COLOR3;
+//        slot1SensorB = RobotMap.getInstance().COLOR4;
+//        slot2SensorA = RobotMap.getInstance().COLOR5;
+//        slot2SensorB = RobotMap.getInstance().COLOR6;
+    }
+
 
     //------------------------------CALIBRATION---------------------------------------------//
 
@@ -524,6 +512,10 @@ public class Indexer extends SubsystemTemplate {
      */
     public void updatePID() {
         rotorPid.setPID(ROTOR_kP, ROTOR_kI, ROTOR_kD);
+    }
+
+    public void setPower(double power) {
+        rotorMotor.setPower(power);
     }
 
 

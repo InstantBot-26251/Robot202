@@ -26,7 +26,6 @@ import org.firstinspires.ftc.teamcode.robot.RobotMap;
 public class IndexerPIDTuningManual extends OpMode {
 
     private Indexer indexer;
-    private DcMotor rotorMotor;
 
     @Override
     public void init() {
@@ -34,8 +33,7 @@ public class IndexerPIDTuningManual extends OpMode {
 
         RobotMap.getInstance().init(hardwareMap);
         indexer = Indexer.getInstance();
-        indexer.initialize();
-        rotorMotor = RobotMap.getInstance().INDEXER_ROTOR;
+        indexer.initHardware();
         indexer.onTeleopInit();
 
     }
@@ -49,7 +47,7 @@ public class IndexerPIDTuningManual extends OpMode {
     public void loop() {
         // Manual control with left stick
         double power = -gamepad1.left_stick_y * 0.5; // Limit to 50% power
-        rotorMotor.setPower(power);
+        indexer.setPower(power);
 
         // Display telemetry
         int currentPos = indexer.getRotorPosition();

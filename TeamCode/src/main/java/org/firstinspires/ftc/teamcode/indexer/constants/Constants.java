@@ -14,8 +14,8 @@ public class Constants {
     public static double ROTOR_kD = 0.0001;
 
     // Position Constants - TUNE THESE
-    public static double ENCODER_TICKS_PER_SLOT = 1000.0; // Distance between slots in encoder ticks
-    public static double TRANSFER_POSITION_OFFSET = 500.0; // Offset from slot 0 to transfer position
+    public static double ENCODER_TICKS_PER_SLOT = 680; // Distance between slots in encoder ticks
+    public static double TRANSFER_POSITION_OFFSET = 999; // Offset from slot 0 to transfer position
 
     // Control Constants
     public static double ROTOR_ERROR_TOLERANCE = 10.0; // Encoder ticks
