@@ -22,7 +22,7 @@ public class RobotMap {
     private final List<WebcamName> devicesC = new ArrayList<>();
 
     // April Tag Webcam
-    public WebcamName WEBCAM;
+    public WebcamName ARDUCAM;
 
     // OTOS
     public SparkFunOTOS OTOS;
@@ -70,12 +70,12 @@ public class RobotMap {
 
 //        OTOS = hardwareMap.get(SparkFunOTOS.class, "otos");
 
-//        WEBCAM = hardwareMap.get(WebcamName.class, "Webcam 1");
+        ARDUCAM = hardwareMap.get(WebcamName.class, "arducam");
 
-//        MOTOR_FL = hardwareMap.get(DcMotorEx.class, "frontLeft");
-//        MOTOR_FR = hardwareMap.get(DcMotorEx.class, "frontRight");
-//        MOTOR_BL = hardwareMap.get(DcMotorEx.class, "backLeft");
-//        MOTOR_BR = hardwareMap.get(DcMotorEx.class, "backRight");
+        MOTOR_FL = hardwareMap.get(DcMotorEx.class, "lf");
+        MOTOR_FR = hardwareMap.get(DcMotorEx.class, "rf");
+        MOTOR_BL = hardwareMap.get(DcMotorEx.class, "lr");
+        MOTOR_BR = hardwareMap.get(DcMotorEx.class, "rr");
 
         // Shooter
         SHOOTER = hardwareMap.get(DcMotorEx.class, "shooter");
@@ -83,7 +83,7 @@ public class RobotMap {
 //
         // Indexer
         INDEXER_ROTOR = hardwareMap.get(DcMotorEx.class, "indexer");
-        INDEXER_HOPPER = hardwareMap.get(CRServo.class, "indexerHopper");
+        INDEXER_HOPPER = hardwareMap.get(CRServo.class, "hopper");
 
 //        COLOR1 = hardwareMap.get(RevColorSensorV3.class, "color1");
 //        COLOR2 = hardwareMap.get(RevColorSensorV3.class, "color2");
@@ -98,10 +98,10 @@ public class RobotMap {
 
     private void addDevicesH() {
 //        devicesH.add(getInstance().OTOS);
-//        devicesH.add(getInstance().MOTOR_FL);
-//        devicesH.add(getInstance().MOTOR_FR);
-//        devicesH.add(getInstance().MOTOR_BL);
-//        devicesH.add(getInstance().MOTOR_BR);
+        devicesH.add(getInstance().MOTOR_FL);
+        devicesH.add(getInstance().MOTOR_FR);
+        devicesH.add(getInstance().MOTOR_BL);
+        devicesH.add(getInstance().MOTOR_BR);
         devicesH.add(getInstance().SHOOTER);
         devicesH.add(getInstance().HOOD);
         devicesH.add(getInstance().INDEXER_ROTOR);
@@ -114,7 +114,7 @@ public class RobotMap {
 //        devicesH.add(getInstance().COLOR6);
     }
     private void addDevicesC() {
-//       devicesH.add(getInstance().WEBCAM);
+       devicesH.add(getInstance().ARDUCAM);
     }
 
     // Getter Methods

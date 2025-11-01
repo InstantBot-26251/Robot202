@@ -4,21 +4,18 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.teamcode.chassis.Chassis;
+
 @TeleOp(name = "Drive Testing")
 public class DrivebaseTestingOpMode extends OpMode {
-    DcMotor fl, fr, bl, br;
-    ChassisSimple Chassis;
+    Chassis chassis;
     double x;
     double y;
     double rx;
 
     @Override
     public void init() {
-        fl = hardwareMap.get(DcMotor.class, "lf");
-        fr = hardwareMap.get(DcMotor.class, "rf");
-        bl = hardwareMap.get(DcMotor.class, "lr");
-        br = hardwareMap.get(DcMotor.class, "rr");
-        Chassis = new ChassisSimple(hardwareMap);
+        chassis = new Chassis(hardwareMap);
     }
 
     @Override
@@ -26,13 +23,25 @@ public class DrivebaseTestingOpMode extends OpMode {
 
         y = -applyResponseCurve(gamepad1.left_stick_y);
         x = applyResponseCurve(gamepad1.left_stick_x);
-        rx = -applyResponseCurve(gamepad1.right_stick_x);
+        rx = applyResponseCurve(gamepad1.right_stick_x);
 
         if (gamepad1.a) {
-            fl.setPower(1);
-            fr.setPower(1);
-            bl.setPower(1);
-            br.setPower(1);
+            chassis.fl.setPower(1);
+            chassis.fr.setPower(1);
+            chassis.bl.setPower(1);
+            chassis.br.setPower(1);
+        }
+
+
+        // TODO: FL AND BL ARE REVERSED
+        if (gamepad1.dpad_up) {
+            chassis.fl.setPower(0.5);  // Test front left
+        } else if (gamepad1.dpad_right) {
+            chassis.fr.setPower(0.5);  // Test front right
+        } else if (gamepad1.dpad_down) {
+            chassis.bl.setPower(0.5);  // Test back left
+        } else if (gamepad1.dpad_left) {
+            chassis.br.setPower(0.5);  // Test back right
         }
 
         telemetry.addData("Left stick y", gamepad1.left_stick_y);
@@ -42,11 +51,11 @@ public class DrivebaseTestingOpMode extends OpMode {
         telemetry.addData("Adjusted y", y);
         telemetry.addData("Adjusted rx", rx);
 
-        if(gamepad1.y){
-             Chassis.resetYaw();
-        }
+//        if(gamepad1.y){
+//             chassis.resetYaw();
+//        }
 
-        Chassis.drive(x, y, rx);
+        chassis.drive(x, y, rx);
         telemetry.update();
     }
 

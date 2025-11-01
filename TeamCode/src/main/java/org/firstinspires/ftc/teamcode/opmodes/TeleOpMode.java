@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.chassis.Chassis;
 import org.firstinspires.ftc.teamcode.indexer.Indexer;
+import org.firstinspires.ftc.teamcode.robot.RobotMap;
 import org.firstinspires.ftc.teamcode.shooter.Shooter;
 import org.firstinspires.ftc.teamcode.shooter.Hood;
 import org.firstinspires.ftc.teamcode.vision.ATVision;
@@ -40,6 +41,7 @@ public class TeleOpMode extends OpMode {
 
     @Override
     public void init() {
+        RobotMap.getInstance().init(hardwareMap);
         indexer = Indexer.getInstance();
         shooter = Shooter.getInstance();
         hood = Hood.getInstance();
@@ -119,9 +121,9 @@ public class TeleOpMode extends OpMode {
         }
 
         // DRIVER CONTROLS
-        if (gamepad1.y){
-            chassis.resetYaw();
-        }
+//        if (gamepad1.y){
+//            chassis.resetYaw();
+//        }
 
         chassis.drive(x, y, rx);
 

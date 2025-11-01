@@ -56,7 +56,7 @@ public class ATVision extends SubsystemTemplate {
 
     public void makePortal() {
         VisionPortal.Builder portalBuilder = new VisionPortal.Builder()
-                .setCamera(RobotMap.getInstance().WEBCAM)
+                .setCamera(RobotMap.getInstance().ARDUCAM)
                 .setCameraResolution(new Size(640, 480))
                 .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
                 .enableLiveView(RobotStatus.liveView)
