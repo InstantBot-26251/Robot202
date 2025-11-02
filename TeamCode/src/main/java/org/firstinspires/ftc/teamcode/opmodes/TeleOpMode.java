@@ -18,7 +18,6 @@ import org.firstinspires.ftc.teamcode.vision.ATVision;
 
 @TeleOp(name = "TeleOp", group = "opmodes")
 public class TeleOpMode extends OpMode {
-    DcMotor fl, fr, bl, br;
     Chassis chassis;
     double x, y, rx;
 
@@ -54,18 +53,14 @@ public class TeleOpMode extends OpMode {
         hood.onTeleopInit();
         vision.onTeleopInit();
 
-        fl = hardwareMap.get(DcMotor.class, "lf");
-        fr = hardwareMap.get(DcMotor.class, "rf");
-        bl = hardwareMap.get(DcMotor.class, "lr");
-        br = hardwareMap.get(DcMotor.class, "rr");
         chassis = new Chassis(hardwareMap);
     }
 
     @Override
     public void loop() {
         y = -applyResponseCurve(gamepad1.left_stick_y, DRIVER_RESPONSE);
-        x = applyResponseCurve(gamepad1.left_stick_x, DRIVER_RESPONSE);
-        rx = -applyResponseCurve(gamepad1.right_stick_x, DRIVER_RESPONSE);
+        x = -applyResponseCurve(gamepad1.left_stick_x, DRIVER_RESPONSE);
+        rx = applyResponseCurve(gamepad1.right_stick_x, DRIVER_RESPONSE);
 
 
         boolean manualHeld = gamepad2.left_bumper;
@@ -74,15 +69,17 @@ public class TeleOpMode extends OpMode {
         if (manualHeld) {
             wasManual = true;
 
-            double power = -applyResponseCurve(gamepad2.left_stick_y * 0.4, MANIP_RESPONSE);
+            double power = -applyResponseCurve(gamepad2.left_stick_y * 0.7, MANIP_RESPONSE);
             indexer.setPower(power);
 
         } else {
+//
+//            if (wasManual) {
+//                wasManual = false;
+//                snapIndexerToNearestSlot();
+//            }
 
-            if (wasManual) {
-                wasManual = false;
-                snapIndexerToNearestSlot();
-            }
+            hood.hoodServo.setPosition(gamepad2.right_stick_y);
 
 
             if (gamepad2.a) {
@@ -90,7 +87,7 @@ public class TeleOpMode extends OpMode {
             }
 
             if (gamepad2.b) {
-                indexer.rotateToTransferPosition();
+                shooter.startShooting(0.5);
             }
 
             if (gamepad2.dpad_up) {
@@ -104,7 +101,7 @@ public class TeleOpMode extends OpMode {
 
 
         if (gamepad2.x) {
-            shooter.startShooting(1.0);
+            shooter.startShooting(-1.0);
         }
 
         if (gamepad2.y) {
@@ -121,9 +118,9 @@ public class TeleOpMode extends OpMode {
         }
 
         // DRIVER CONTROLS
-//        if (gamepad1.y){
-//            chassis.resetYaw();
-//        }
+        if (gamepad1.y){
+            chassis.resetYaw();
+        }
 
         chassis.drive(x, y, rx);
 
@@ -137,6 +134,10 @@ public class TeleOpMode extends OpMode {
         telemetry.addData("Manual?", manualHeld);
         telemetry.addData("Pos", indexer.getRotorPosition());
         telemetry.addData("Slot", indexer.getCurrentSlot());
+        telemetry.addData("Motor Velocity (fl), ", chassis.fl.getVelocity());
+        telemetry.addData("Motor Velocity (fr), ", chassis.fr.getVelocity());
+        telemetry.addData("Motor Velocity (bl), ", chassis.bl.getVelocity());
+        telemetry.addData("Motor Velocity (br), ", chassis.br.getVelocity());
         telemetry.update();
     }
 

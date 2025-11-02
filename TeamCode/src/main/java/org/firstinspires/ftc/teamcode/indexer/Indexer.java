@@ -115,7 +115,7 @@ public class Indexer extends SubsystemTemplate {
     }
 
     public void initHardware() {
-        rotorMotor = (DcMotorEx) RobotMap.getInstance().INDEXER_ROTOR;
+        rotorMotor = RobotMap.getInstance().INDEXER_ROTOR;
         hopper = RobotMap.getInstance().INDEXER_HOPPER;
 //        slot0SensorA = RobotMap.getInstance().COLOR1;
 //        slot0SensorB = RobotMap.getInstance().COLOR2;
@@ -414,7 +414,7 @@ public class Indexer extends SubsystemTemplate {
     //---------------------------------HOPPER CONTROL--------------------------//
 
     public void startHopper() {
-        hopper.setPower(1);
+        hopper.setPower(-1);
     }
 
     public void stopHopper() {
