@@ -34,9 +34,9 @@ public class TeleOpMode extends OpMode {
 
     private ATVision vision;
 
-    private static final int[] SLOT_POSITIONS = {SLOT_0, SLOT_1, SLOT_2};
+//    private static final int[] SLOT_POSITIONS = {SLOT_0, SLOT_1, SLOT_2};
 
-    private boolean wasManual = false;   // Track manual → auto transition
+//    private boolean wasManual = false;   // Track manual → auto transition
 
     @Override
     public void init() {
@@ -63,16 +63,16 @@ public class TeleOpMode extends OpMode {
         rx = applyResponseCurve(gamepad1.right_stick_x, DRIVER_RESPONSE);
 
 
-        boolean manualHeld = gamepad2.left_bumper;
+//        boolean manualHeld = gamepad2.left_bumper;
 
 
-        if (manualHeld) {
-            wasManual = true;
+//        if (manualHeld) {
+//            wasManual = true;
 
             double power = -applyResponseCurve(gamepad2.left_stick_y * 0.7, MANIP_RESPONSE);
             indexer.setPower(power);
 
-        } else {
+//        } else {
 //
 //            if (wasManual) {
 //                wasManual = false;
@@ -97,7 +97,6 @@ public class TeleOpMode extends OpMode {
             if (gamepad2.dpad_down) {
                 indexer.stopHopper();
             }
-        }
 
 
         if (gamepad2.x) {
@@ -131,9 +130,11 @@ public class TeleOpMode extends OpMode {
 
 
         // TELEMETRY
-        telemetry.addData("Manual?", manualHeld);
+//        telemetry.addData("Manual?", manualHeld);
         telemetry.addData("Pos", indexer.getRotorPosition());
         telemetry.addData("Slot", indexer.getCurrentSlot());
+        telemetry.addData("Hood Angle", hood.getCurrentAngle());
+        telemetry.addData("Hood Position", hood.getCurrentServoPosition());
         telemetry.addData("Motor Velocity (fl), ", chassis.fl.getVelocity());
         telemetry.addData("Motor Velocity (fr), ", chassis.fr.getVelocity());
         telemetry.addData("Motor Velocity (bl), ", chassis.bl.getVelocity());
@@ -142,22 +143,22 @@ public class TeleOpMode extends OpMode {
     }
 
 
-    private void snapIndexerToNearestSlot() {
-        int current = indexer.getRotorPosition();
-
-        int nearestSlot = 0;
-        int smallestDiff = Math.abs(current - SLOT_POSITIONS[0]);
-
-        for (int i = 1; i < SLOT_POSITIONS.length; i++) {
-            int diff = Math.abs(current - SLOT_POSITIONS[i]);
-            if (diff < smallestDiff) {
-                smallestDiff = diff;
-                nearestSlot = i;
-            }
-        }
-
-        indexer.rotateToSlot(nearestSlot);
-    }
+//    private void snapIndexerToNearestSlot() {
+//        int current = indexer.getRotorPosition();
+//
+//        int nearestSlot = 0;
+//        int smallestDiff = Math.abs(current - SLOT_POSITIONS[0]);
+//
+//        for (int i = 1; i < SLOT_POSITIONS.length; i++) {
+//            int diff = Math.abs(current - SLOT_POSITIONS[i]);
+//            if (diff < smallestDiff) {
+//                smallestDiff = diff;
+//                nearestSlot = i;
+//            }
+//        }
+//
+//        indexer.rotateToSlot(nearestSlot);
+//    }
 
     private double applyResponseCurve(double input, double scale) {
         // Limit Input to 1 (MAX) and -1 (MIN)

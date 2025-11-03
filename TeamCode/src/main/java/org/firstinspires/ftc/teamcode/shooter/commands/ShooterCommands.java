@@ -8,6 +8,8 @@ import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.FULL_PO
 import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.TEST_HOOD_ANGLE;
 import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.WHEEL_DIAMETER;
 
+import android.util.Log;
+
 import com.arcrobotics.ftclib.command.Command;
 
 import org.firstinspires.ftc.teamcode.shooter.Shooter;
@@ -32,6 +34,8 @@ public class ShooterCommands {
     public static final Supplier<Command> AUTO_AIM_AND_SHOOT; // This is what Enigma needs!
     public static final Supplier<Command> SHOOT;
     public static final Supplier<Command> REJECT;
+
+
 
 
     static {
@@ -69,8 +73,9 @@ public class ShooterCommands {
 
                     if (distance <= 0) {
                         // No valid target detected, use default angle
-                        System.out.println("Warning: No valid target detected for auto-aim");
-                        hood.setAngle(TEST_HOOD_ANGLE); // fallback angle
+                        Log.i("Warning", ": No valid target detected for auto-aim");
+                        String telemetry = "Not able to shoot";
+                        hood.setAngle(0);
                     } else {
                         double angle = MathPM.calculateAngleFromRPM(
                                 FLYWHEEL_RPM,
@@ -79,7 +84,8 @@ public class ShooterCommands {
                                 distance,
                                 DEFAULT_HEIGHT_DIFF
                         );
-                        hood.setAngle(angle);
+                        double fudge = 3.75;
+                        hood.setAngle(angle + fudge);
                     }
                 }),
                 Commands.runOnce(() -> shooter.startShooting(FULL_POWER))
