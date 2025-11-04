@@ -71,12 +71,12 @@ public class ShooterCommands {
                 Commands.runOnce(() -> {
                     double distance = getTargetDistance();
 
-                    if (distance <= 0) {
+                    if (distance == -1) {
                         // No valid target detected, use default angle
                         Log.i("Warning", ": No valid target detected for auto-aim");
                         String telemetry = "Not able to shoot";
                         hood.setAngle(0);
-                    } else {
+                    } else if (distance > 0) {
                         double angle = MathPM.calculateAngleFromRPM(
                                 FLYWHEEL_RPM,
                                 WHEEL_DIAMETER,
@@ -87,8 +87,7 @@ public class ShooterCommands {
                         double fudge = 3.75;
                         hood.setAngle(angle + fudge);
                     }
-                }),
-                Commands.runOnce(() -> shooter.startShooting(FULL_POWER))
+                })
         );
 
         // Automatically calculate hood angle + spin up + shoot

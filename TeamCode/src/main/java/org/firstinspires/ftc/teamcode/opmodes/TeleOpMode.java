@@ -1,6 +1,14 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import static org.firstinspires.ftc.teamcode.shooter.commands.ShooterCommands.AUTO_AIM;
+import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.FLYWHEEL_RPM;
+import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.WHEEL_DIAMETER;
+import static org.firstinspires.ftc.teamcode.vision.VisionConstants.arducam_cx;
+import static org.firstinspires.ftc.teamcode.vision.VisionConstants.arducam_cy;
+import static org.firstinspires.ftc.teamcode.vision.VisionConstants.arducam_fx;
+import static org.firstinspires.ftc.teamcode.vision.VisionConstants.arducam_fy;
+
+import android.util.Size;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -8,18 +16,34 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.chassis.Chassis;
 import org.firstinspires.ftc.teamcode.indexer.Indexer;
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
 import org.firstinspires.ftc.teamcode.shooter.Shooter;
 import org.firstinspires.ftc.teamcode.shooter.Hood;
+import org.firstinspires.ftc.teamcode.util.math.MathPM;
+import org.firstinspires.ftc.teamcode.vision.ATLivestream;
 import org.firstinspires.ftc.teamcode.vision.ATVision;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
+import java.util.List;
 
 
 @TeleOp(name = "TeleOp", group = "opmodes")
 public class TeleOpMode extends OpMode {
     Chassis chassis;
     double x, y, rx;
+
+    private static final int DASHBOARD_FPS = 10;
+
+    private FtcDashboard dashboard;
+
+    private VisionPortal visionPortal;
+    private ATLivestream atLivestream;
+    private AprilTagProcessor aprilTagProcessor;
 
     private Indexer indexer;
     private Shooter shooter;
@@ -51,7 +75,30 @@ public class TeleOpMode extends OpMode {
         indexer.onTeleopInit();
         shooter.onTeleopInit();
         hood.onTeleopInit();
-        vision.onTeleopInit();
+
+        try {
+            atLivestream = new ATLivestream();
+
+            aprilTagProcessor = new AprilTagProcessor.Builder()
+                    .setLensIntrinsics(arducam_fx, arducam_fy, arducam_cx, arducam_cy)
+                    .build();
+
+            visionPortal = new VisionPortal.Builder()
+                    .setCamera(hardwareMap.get(WebcamName.class, "arducam"))
+                    .setCameraResolution(new Size(640, 480))
+                    .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
+                    .addProcessor(atLivestream)
+                    .addProcessor(aprilTagProcessor)
+                    .build();
+            // Stream to dashboard for visualization
+            dashboard.startCameraStream((org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource) atLivestream, DASHBOARD_FPS);
+
+
+            telemetry.addLine("VisionPortal initialized successfully.");
+        } catch (Exception e) {
+            telemetry.addLine("Initialization error: " + e.toString());
+        }
+
 
         chassis = new Chassis(hardwareMap);
     }
@@ -62,7 +109,32 @@ public class TeleOpMode extends OpMode {
         x = -applyResponseCurve(gamepad1.left_stick_x, DRIVER_RESPONSE);
         rx = applyResponseCurve(gamepad1.right_stick_x, DRIVER_RESPONSE);
 
+        double calculatedAngle = -1;
+        double rangeInches = -1;
 
+
+        if (aprilTagProcessor != null) {
+            List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
+
+            if (detections != null && !detections.isEmpty()) {
+                AprilTagDetection tag = detections.get(0);
+                if (tag != null && tag.ftcPose != null) {
+                    rangeInches = tag.ftcPose.range;
+                    if (tag != null && tag.ftcPose != null) {
+                        rangeInches = tag.ftcPose.range;
+
+                        double exitVelocity = MathPM.calculateExitVelocity(
+                                FLYWHEEL_RPM, WHEEL_DIAMETER
+                        );
+
+                        calculatedAngle = MathPM.calculateLaunchAngle(
+                                MathPM.inchesToMeters(rangeInches), exitVelocity, MathPM.inchesToMeters(41.45)
+                        );
+
+                        if (calculatedAngle > 0) {
+                            // clamp to 0–70
+                            calculatedAngle = Math.max(0, Math.min(70, calculatedAngle));
+                        }                   }}}}
 //        boolean manualHeld = gamepad2.left_bumper;
 
 
@@ -109,7 +181,7 @@ public class TeleOpMode extends OpMode {
 
 
         if (gamepad2.dpad_left) {
-            AUTO_AIM.get();
+            hood.setAngle(calculatedAngle);
         }
 
         if (gamepad2.dpad_right) {
@@ -134,7 +206,7 @@ public class TeleOpMode extends OpMode {
         telemetry.addData("Pos", indexer.getRotorPosition());
         telemetry.addData("Slot", indexer.getCurrentSlot());
         telemetry.addData("Hood Angle", hood.getCurrentAngle());
-        telemetry.addData("Hood Position", hood.getCurrentServoPosition());
+        telemetry.addData("Hood Position", hood.hoodServo.getPosition());
         telemetry.addData("Motor Velocity (fl), ", chassis.fl.getVelocity());
         telemetry.addData("Motor Velocity (fr), ", chassis.fr.getVelocity());
         telemetry.addData("Motor Velocity (bl), ", chassis.bl.getVelocity());

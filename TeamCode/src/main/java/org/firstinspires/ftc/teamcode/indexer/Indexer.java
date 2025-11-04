@@ -83,14 +83,22 @@ public class Indexer extends SubsystemTemplate {
 
     @Override
     public void onAutonomousInit() {
+        telemetry = Enigma.getInstance().getTelemetry();
+
         reset();
         calibrateRotor();
+
+        rotorPid.setSetPoint(getRotorPosition());
     }
 
     @Override
     public void onTeleopInit() {
+        telemetry = Enigma.getInstance().getTelemetry();
+
         reset();
         calibrateRotor();
+
+        rotorPid.setSetPoint(getRotorPosition());
     }
 
     public void reset() {
@@ -103,10 +111,6 @@ public class Indexer extends SubsystemTemplate {
             slot.clear();
         }
 
-        rotorPid.setSetPoint(getRotorPosition());
-
-        rotorMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        rotorMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
 //        stopHopper();
 //        stopRotor();
@@ -147,7 +151,6 @@ public class Indexer extends SubsystemTemplate {
 
         rotorMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        rotorPid.setSetPoint(getRotorPosition());
 
         isCalibrated = true;
         state = IndexerState.IDLE;
@@ -476,6 +479,13 @@ public class Indexer extends SubsystemTemplate {
         return getArtifactCount() == 0;
     }
 
+    private void setRotorPower(double power) {
+        rotorMotor.setPower(power);
+    }
+
+    public void setRotorPos(double pos) {
+        rotorPid.setSetPoint(pos);
+    }
 
     public Map<Integer, ArtifactSlot> getSlots() {
         return new HashMap<>(slots); // Return copy for safety
@@ -516,10 +526,7 @@ public class Indexer extends SubsystemTemplate {
         if (state == IndexerState.ROTATING) {
             double output = rotorPid.calculate(rotorMotor.getCurrentPosition());
 
-            //clamp output
-            output = Math.max(ROTOR_MIN_POWER, Math.min(ROTOR_MAX_POWER, output));
-
-            rotorMotor.setPower(output);
+            setRotorPower(output);
 
             if (isAtTargetPosition()) {
                 stopRotor();
@@ -541,5 +548,6 @@ public class Indexer extends SubsystemTemplate {
             }
         }
     }
+
 
 }

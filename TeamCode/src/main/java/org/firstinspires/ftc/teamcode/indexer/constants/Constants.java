@@ -14,13 +14,13 @@ public class Constants {
     public static double ROTOR_kD = 0.0001;
 
     // Position Constants - TUNE THESE
-    public static double ENCODER_TICKS_PER_SLOT = 680; // Distance between slots in encoder ticks
+    public static double ENCODER_TICKS_PER_SLOT = 685; // Distance between slots in encoder ticks
     public static double TRANSFER_POSITION_OFFSET = 999; // Offset from slot 0 to transfer position
 
     // Control Constants
     public static double ROTOR_ERROR_TOLERANCE = 10.0; // Encoder ticks
-    public static double ROTOR_MAX_POWER = 0.6;
-    public static double ROTOR_MIN_POWER = -0.6;
+    public static double ROTOR_MAX_POWER = 1;
+    public static double ROTOR_MIN_POWER = -1;
 
     /**
      * HOPPER CONTROL

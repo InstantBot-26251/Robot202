@@ -1,11 +1,15 @@
 package org.firstinspires.ftc.teamcode.util.testing.indexer;
 
+import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_kD;
+import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_kI;
+import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_kP;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.hardware.lynx.LynxModule;
 
 import org.firstinspires.ftc.teamcode.indexer.Indexer;
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
@@ -25,26 +29,29 @@ import org.firstinspires.ftc.teamcode.robot.RobotMap;
 @TeleOp(name = "Simple Indexer Tuner", group = "Tuning")
 public class IndexerPIDTuning extends OpMode {
 
-    // Editable in FTC Dashboard
-    public static double kP = 0.01;
-    public static double kI = 0.0;
-    public static double kD = 0.0001;
-
     public static int ENTRY_POSITION = 0;
     public static int TRANSFER_POSITION = 80;
-    public static int TICKS_PER_SLOT = 680;
+    public static int TICKS_PER_SLOT = (736 + 683 + 651 + 711 + 652 + 678 + 711 + 656) / 8;
     public static int POSITION_TOLERANCE = 20;
+
+    public static double rotorTarget = 0;
+
 
     private Indexer indexer;
 
     @Override
     public void init() {
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-
         RobotMap.getInstance().init(hardwareMap);
         indexer = Indexer.getInstance();
         indexer.initHardware();
         indexer.onTeleopInit();
+
+
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+
+        for (LynxModule hub : RobotMap.getInstance().getLynxModules()) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
 
         telemetry.addLine("Simple Indexer Tuner Ready!");
         telemetry.addLine();
@@ -61,22 +68,22 @@ public class IndexerPIDTuning extends OpMode {
 
     @Override
     public void loop() {
+        if (gamepad1.a) {
+            indexer.updatePID();
+        }
+
         indexer.periodic();
             // Automatic PID control
 
             // DPAD_UP - Go to entry
             if (gamepad1.dpad_up) {
-                indexer.rotateToTransferPosition();
+                indexer.rotateToNextSlot();
             }
 
             // DPAD_DOWN - Go to transfer
             if (gamepad1.dpad_down) {
-                indexer.rotateToSlot(0);
+                indexer.rotateToSlot(indexer.getRotorPosition() - TICKS_PER_SLOT);
             }
-
-            // Run periodic (updates PID)
-            indexer.periodic();
-
         // Display telemetry
         int currentPos = indexer.getRotorPosition();
         int targetPos = indexer.getRotorTarget();
@@ -93,9 +100,9 @@ public class IndexerPIDTuning extends OpMode {
         telemetry.addData("Transfer Position", TRANSFER_POSITION);
         telemetry.addData("Ticks Per Slot", TICKS_PER_SLOT);
         telemetry.addLine();
-        telemetry.addData("kP", "%.5f", kP);
-        telemetry.addData("kI", "%.5f", kI);
-        telemetry.addData("kD", "%.5f", kD);
+        telemetry.addData("kP", "%.5f", ROTOR_kP);
+        telemetry.addData("kI", "%.5f", ROTOR_kI);
+        telemetry.addData("kD", "%.5f", ROTOR_kD);
         telemetry.update();
     }
 
