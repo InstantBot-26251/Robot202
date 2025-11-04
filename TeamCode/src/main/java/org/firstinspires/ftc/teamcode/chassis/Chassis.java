@@ -14,6 +14,11 @@ public class Chassis {
     public DcMotorEx br;
     IMU imu;
 
+
+    public static double modifierFL = 0.88095238095;
+    public static double modifierFR = 0.89516129032;
+    public static double modifierBR = 0.9652173913;
+
     public Chassis (HardwareMap hardwareMap) {
         // TODO: Add Modifiers
         // Initialize motors
@@ -62,9 +67,9 @@ public class Chassis {
         double backRightPower = (adjustedY + adjustedX - rx) / denominator;
 
         // Set motor powers
-        fl.setPower(frontLeftPower);
-        fr.setPower(frontRightPower);
+        fl.setPower(frontLeftPower * modifierFL);
+        fr.setPower(frontRightPower * modifierFR);
         bl.setPower(backLeftPower);
-        br.setPower(backRightPower);
+        br.setPower(backRightPower * modifierBR);
     }
 }
