@@ -20,7 +20,7 @@ public class Chassis {
     public static double modifierBR = 0.9652173913;
 
     public Chassis (HardwareMap hardwareMap) {
-        // TODO: Add Modifiers
+
         // Initialize motors
         fl = hardwareMap.get(DcMotorEx.class, "lf");
         fr = hardwareMap.get(DcMotorEx.class, "rf");
