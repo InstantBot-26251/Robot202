@@ -6,16 +6,13 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
 import org.firstinspires.ftc.teamcode.robot.Enigma;
 import org.firstinspires.ftc.teamcode.util.hardware.InstantMotor;
+import org.firstinspires.ftc.teamcode.shooter.ShooterState;
 import org.firstinspires.ftc.teamcode.util.SubsystemTemplate;
 
 public class Shooter extends SubsystemTemplate {
 
     InstantMotor shooter;
     Telemetry telemetry;
-
-    public enum ShooterState {
-        RESTING, SHOOTING, REJECTION
-    }
 
     ShooterState state;
 
@@ -61,7 +58,7 @@ public class Shooter extends SubsystemTemplate {
 
     public void reject() {
         setState(ShooterState.REJECTION);
-        shooter.setPower(0.5);
+        shooter.setPower(0.75);
     }
 
     public void stopShooting() {

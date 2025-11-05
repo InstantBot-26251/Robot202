@@ -1,5 +1,10 @@
 package org.firstinspires.ftc.teamcode.vision;
 
+import static org.firstinspires.ftc.teamcode.vision.VisionConstants.arducam_cx;
+import static org.firstinspires.ftc.teamcode.vision.VisionConstants.arducam_cy;
+import static org.firstinspires.ftc.teamcode.vision.VisionConstants.arducam_fx;
+import static org.firstinspires.ftc.teamcode.vision.VisionConstants.arducam_fy;
+
 import android.util.Size;
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -11,7 +16,6 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.teamcode.vision.ATLivestream;
 
 import java.util.List;
 import java.util.Locale;
@@ -20,7 +24,6 @@ import java.util.Locale;
 public class ATTestingOpMode extends OpMode {
 
     private static final String WEBCAM_NAME = "Webcam 1";
-    private static final Size CAM_RES = new Size(640, 480);
     private static final int DASHBOARD_FPS = 12;
 
     private FtcDashboard dashboard;
@@ -49,13 +52,17 @@ public class ATTestingOpMode extends OpMode {
 
         try {
             atLivestream = new ATLivestream();
-            aprilTagProcessor = AprilTagProcessor.easyCreateWithDefaults();
+
+            aprilTagProcessor = new AprilTagProcessor.Builder()
+                    .setLensIntrinsics(arducam_fx, arducam_fy, arducam_cx, arducam_cy)
+                    .build();
 
             visionPortal = new VisionPortal.Builder()
                     .setCamera(hardwareMap.get(WebcamName.class, WEBCAM_NAME))
+                    .setCameraResolution(new Size(640,480))
+                    .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
                     .addProcessor(atLivestream)
                     .addProcessor(aprilTagProcessor)
-                    .setCameraResolution(CAM_RES)
                     .build();
 
 

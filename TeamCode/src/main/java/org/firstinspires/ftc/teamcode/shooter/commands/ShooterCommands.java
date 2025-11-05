@@ -8,10 +8,13 @@ import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.FULL_PO
 import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.TEST_HOOD_ANGLE;
 import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.WHEEL_DIAMETER;
 
+import android.util.Log;
+
 import com.arcrobotics.ftclib.command.Command;
 
 import org.firstinspires.ftc.teamcode.shooter.Shooter;
 import org.firstinspires.ftc.teamcode.shooter.Hood;
+import org.firstinspires.ftc.teamcode.shooter.ShooterState;
 import org.firstinspires.ftc.teamcode.util.math.MathPM;
 import org.firstinspires.ftc.teamcode.util.commands.Commands;
 import org.firstinspires.ftc.teamcode.vision.ATVision;
@@ -33,20 +36,22 @@ public class ShooterCommands {
     public static final Supplier<Command> REJECT;
 
 
+
+
     static {
         Shooter shooter = Shooter.getInstance();
         Hood hood = Hood.getInstance();
 
         // Spin up shooter at fixed power
         SPIN_UP = () -> Commands.sequence(
-                Commands.runOnce(() -> shooter.setState(Shooter.ShooterState.SHOOTING)),
+                Commands.runOnce(() -> shooter.setState(ShooterState.SHOOTING)),
                 Commands.runOnce(() -> shooter.startShooting(1)) // full power for now
         );
 
         // Stop shooter
         STOP = () -> Commands.sequence(
                 Commands.runOnce(shooter::stopShooting),
-                Commands.runOnce(() -> shooter.setState(Shooter.ShooterState.RESTING))
+                Commands.runOnce(() -> shooter.setState(ShooterState.RESTING))
         );
 
         // Adjust hood angle (30 deg for testing)
@@ -56,8 +61,8 @@ public class ShooterCommands {
 
         // Spin up shooter for rejection - ideally half power
         SPIN_SLOW = () -> Commands.sequence(
-                Commands.runOnce(() -> shooter.setState(Shooter.ShooterState.REJECTION)),
-                Commands.runOnce(() -> shooter.startShooting(0.5)) // TODO: Test and Tune (TAT)
+                Commands.runOnce(() -> shooter.setState(ShooterState.REJECTION)),
+                Commands.runOnce(() -> shooter.startShooting(0.75)) // TODO: Test and Tune (TAT)
         );
 
 
@@ -66,11 +71,12 @@ public class ShooterCommands {
                 Commands.runOnce(() -> {
                     double distance = getTargetDistance();
 
-                    if (distance <= 0) {
+                    if (distance == -1) {
                         // No valid target detected, use default angle
-                        System.out.println("Warning: No valid target detected for auto-aim");
-                        hood.setAngle(TEST_HOOD_ANGLE); // fallback angle
-                    } else {
+                        Log.i("Warning", ": No valid target detected for auto-aim");
+                        String telemetry = "Not able to shoot";
+                        hood.setAngle(0);
+                    } else if (distance > 0) {
                         double angle = MathPM.calculateAngleFromRPM(
                                 FLYWHEEL_RPM,
                                 WHEEL_DIAMETER,
@@ -78,10 +84,10 @@ public class ShooterCommands {
                                 distance,
                                 DEFAULT_HEIGHT_DIFF
                         );
-                        hood.setAngle(angle);
+                        double fudge = 3.75;
+                        hood.setAngle(angle + fudge);
                     }
-                }),
-                Commands.runOnce(() -> shooter.startShooting(FULL_POWER))
+                })
         );
 
         // Automatically calculate hood angle + spin up + shoot
@@ -104,8 +110,8 @@ public class ShooterCommands {
 
                         }
                     }
-                    double heightDiff = 0.5; // TODO: measure
-                    double flywheelRPM = 3000; // TODO: measure
+                    double heightDiff = 0.5;
+                    double flywheelRPM = FLYWHEEL_RPM; // TODO: measure
                     double wheelDiameter = MathPM.inchesToMeters(0.1); // TODO: measure
 
                     double angle = MathPM.calculateAngleFromRPM(

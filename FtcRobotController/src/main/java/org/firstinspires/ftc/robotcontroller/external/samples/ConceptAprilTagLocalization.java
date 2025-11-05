@@ -64,7 +64,7 @@ import java.util.List;
  * This information is provided in the "robotPose" member of the returned "detection".
  *
  * To learn about the Field Coordinate System that is defined for FTC (and used by this OpMode), see the FTC-DOCS link below:
- * https://ftc-docs.firstinspires.org/en/latest/game_specific_resources/field_coordinate_system/field-coordinate-system.html
+ * https://ftc-docs.firstinspiyoures.org/en/latest/game_specific_resources/field_coordinate_system/field-coordinate-system.html
  *
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list.
