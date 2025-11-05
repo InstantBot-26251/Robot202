@@ -1,11 +1,11 @@
-package org.firstinspires.ftc.teamcode.opmodes;
+package org.firstinspires.ftc.teamcode.opmodes.auto;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
-@Autonomous
-public class Auto extends OpMode {
+@Autonomous(name = "Straight Drive")
+public class AutoSimple extends OpMode {
     DcMotorEx fl, fr, bl, br;
 
     @Override
