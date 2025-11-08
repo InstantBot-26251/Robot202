@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 public class AutoSimple extends OpMode {
     DcMotorEx fl, fr, bl, br;
 
-    @Override
     public void init() {
         fl = hardwareMap.get(DcMotorEx.class, "lf");
         fr = hardwareMap.get(DcMotorEx.class, "rf");
@@ -22,8 +21,9 @@ public class AutoSimple extends OpMode {
 
         fl.setDirection(DcMotorEx.Direction.REVERSE);
         fr.setDirection(DcMotorEx.Direction.REVERSE);
-
     }
+
+
     @Override
     public void loop() {
         moveForward();
@@ -35,4 +35,5 @@ public class AutoSimple extends OpMode {
         br.setPower(0.5);
         bl.setPower(0.5);
     }
+
 }

@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.chassis;
 
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -12,7 +13,9 @@ public class Chassis {
     public DcMotorEx fr;
     public DcMotorEx bl;
     public DcMotorEx br;
+
     IMU imu;
+    SparkFunOTOS otos;
 
 
     public static double modifierFL = 0.88095238095;
@@ -37,22 +40,28 @@ public class Chassis {
         br.setDirection(DcMotorEx.Direction.REVERSE);
 
         // Initialize x
-        imu = hardwareMap.get(IMU.class, "imu");
+//        imu = hardwareMap.get(IMU.class, "imu");
 
-        // Set up IMU parameters
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
-        ));
-        imu.initialize(parameters);
+//        // Set up IMU parameters
+//        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+//                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+//                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+//        ));
+//        imu.initialize(parameters);
+
+        // Initialize x
+        otos = hardwareMap.get(SparkFunOTOS.class, "otos");
+        otos.setOffset(new SparkFunOTOS.Pose2D(2.5,3.75,Math.PI / 2));
+
     }
-    public void resetYaw() {
-        imu.resetYaw();
-    }
+//    public void resetYaw() {
+//        imu.resetYaw();
+//    }
 
     public void drive(double x, double y, double rx) {
-        // Get the robot's current heading
-        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+//        // Get the robot's current heading
+//        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        double botHeading = otos.getPosition().h;
 
         // Adjust the input values for field-centric control
         double adjustedX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
@@ -71,5 +80,9 @@ public class Chassis {
         fr.setPower(frontRightPower * modifierFR);
         bl.setPower(backLeftPower);
         br.setPower(backRightPower * modifierBR);
+    }
+
+    public void resetYaw() {
+        otos.resetTracking();
     }
 }

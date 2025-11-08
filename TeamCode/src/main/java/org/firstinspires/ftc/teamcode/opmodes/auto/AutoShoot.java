@@ -1,10 +1,13 @@
 package org.firstinspires.ftc.teamcode.opmodes.auto;
 
+import static org.firstinspires.ftc.teamcode.opmodes.auto.AutoConstants.MOVE_TIME;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.indexer.Indexer;
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
@@ -19,6 +22,11 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 @Config
 public class AutoShoot extends OpMode {
     DcMotorEx fl, fr, bl, br;
+
+    AutoState currentState = AutoState.MOVETOSHOOTINGPOSITION;
+
+    private ElapsedTime runtime = new ElapsedTime();
+    private double stateStartTime = 0;
 
     private ATVision vision;
 
@@ -45,6 +53,12 @@ public class AutoShoot extends OpMode {
         hood = Hood.getInstance();
         vision = ATVision.getInstance();
 
+        indexer = Indexer.getInstance();
+
+        indexer.initHardware();
+
+        indexer.onTeleopInit();
+
         fl = hardwareMap.get(DcMotorEx.class, "lf");
         fr = hardwareMap.get(DcMotorEx.class, "rf");
         bl = hardwareMap.get(DcMotorEx.class, "lr");
@@ -57,17 +71,51 @@ public class AutoShoot extends OpMode {
 
         fl.setDirection(DcMotorEx.Direction.REVERSE);
         fr.setDirection(DcMotorEx.Direction.REVERSE);
+    }
 
-        indexer = Indexer.getInstance();
 
-        indexer.initHardware();
+    @Override
+    public void init_loop() {
+        runtime.reset();
+        telemetry.addData("Current State", currentState);
+        stateStartTime = runtime.seconds();
+    }
 
-        indexer.onTeleopInit();
+
+    @Override
+    public void start() {
+        runtime.reset();
+        currentState = AutoState.MOVETOSHOOTINGPOSITION;
+        stateStartTime = runtime.seconds();
     }
 
     @Override
     public void loop() {
+        double elapsedTime = runtime.seconds() - stateStartTime;
 
+        switch (currentState) {
+
+            case MOVETOSHOOTINGPOSITION:
+                if (elapsedTime < MOVE_TIME) {
+                    moveBackward();
+                } else {
+                    stopMotors();
+                     currentState = AutoState.INDEXARTIFACT1;
+                }
+                break;
+
+            case SHOOTARTIFACT1:
+                indexer.startHopper();
+                try {
+                    wait(1500);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+        }
+
+        telemetry.addData("Current State", currentState);
+        telemetry.addData("Elapsed Time", "%.2f seconds", elapsedTime);
+        telemetry.update();
     }
 
     public void moveBackward() {
@@ -75,5 +123,12 @@ public class AutoShoot extends OpMode {
         fr.setPower(-0.5);
         bl.setPower(-0.5);
         br.setPower(-0.5);
+    }
+
+    public void stopMotors() {
+        fl.setPower(0);
+        fr.setPower(0);
+        bl.setPower(0);
+        br.setPower(0);
     }
 }
