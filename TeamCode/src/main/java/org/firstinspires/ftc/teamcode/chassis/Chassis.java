@@ -15,7 +15,7 @@ public class Chassis {
     public DcMotorEx br;
 
     IMU imu;
-    SparkFunOTOS otos;
+//    SparkFunOTOS otos;
 
 
     public static double modifierFL = 0.88095238095;
@@ -40,28 +40,28 @@ public class Chassis {
         br.setDirection(DcMotorEx.Direction.REVERSE);
 
         // Initialize x
-//        imu = hardwareMap.get(IMU.class, "imu");
+        imu = hardwareMap.get(IMU.class, "imu");
 
 //        // Set up IMU parameters
-//        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-//                RevHubOrientationOnRobot.LogoFacingDirection.UP,
-//                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
-//        ));
-//        imu.initialize(parameters);
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+        ));
+        imu.initialize(parameters);
 
         // Initialize x
-        otos = hardwareMap.get(SparkFunOTOS.class, "otos");
-        otos.setOffset(new SparkFunOTOS.Pose2D(2.5,3.75,Math.PI / 2));
+//        otos = hardwareMap.get(SparkFunOTOS.class, "otos");
+//        otos.setOffset(new SparkFunOTOS.Pose2D(2.5,3.75, Math.PI));
 
     }
-//    public void resetYaw() {
-//        imu.resetYaw();
-//    }
+    public void resetYaw() {
+        imu.resetYaw();
+    }
 
     public void drive(double x, double y, double rx) {
 //        // Get the robot's current heading
-//        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-        double botHeading = otos.getPosition().h;
+        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+//        double botHeading = otos.getPosition().h;
 
         // Adjust the input values for field-centric control
         double adjustedX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
@@ -82,7 +82,21 @@ public class Chassis {
         br.setPower(backRightPower * modifierBR);
     }
 
-    public void resetYaw() {
-        otos.resetTracking();
+    public void moveBackward() {
+        fl.setPower(-0.5);
+        fr.setPower(-0.5);
+        bl.setPower(-0.5);
+        br.setPower(-0.5);
     }
+
+    public void stopMotors() {
+        fl.setPower(0);
+        fr.setPower(0);
+        bl.setPower(0);
+        br.setPower(0);
+    }
+
+//    public void resetYaw() {
+//        otos.resetTracking();
+//    }
 }

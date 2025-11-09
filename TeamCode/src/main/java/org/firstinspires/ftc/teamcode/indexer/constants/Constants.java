@@ -9,12 +9,12 @@ public class Constants {
      * ROTOR PID CONTROL
      */
     // PID Constants - TUNE THESE
-    public static double ROTOR_kP = 0.015;
+    public static double ROTOR_kP = 0.0013;
     public static double ROTOR_kI = 0.0;
     public static double ROTOR_kD = 0.0001;
 
     // Position Constants - TUNE THESE
-    public static double ENCODER_TICKS_PER_SLOT = 685; // Distance between slots in encoder ticks
+    public static double ENCODER_TICKS_PER_SLOT = 610; // Distance between slots in encoder ticks
     public static double TRANSFER_POSITION_OFFSET = 999; // Offset from slot 0 to transfer position
 
     // Control Constants
