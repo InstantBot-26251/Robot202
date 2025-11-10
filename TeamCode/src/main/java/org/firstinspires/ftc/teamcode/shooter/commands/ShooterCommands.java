@@ -28,7 +28,6 @@ public class ShooterCommands {
 
     public static final Supplier<Command> SPIN_UP;
     public static final Supplier<Command> STOP;
-    public static final Supplier<Command> SPIN_SLOW;
     public static final Supplier<Command> SET_HOOD_ANGLE;
     public static final Supplier<Command> AUTO_AIM;
     public static final Supplier<Command> AUTO_AIM_AND_SHOOT; // This is what Enigma needs!
@@ -42,15 +41,18 @@ public class ShooterCommands {
         Shooter shooter = Shooter.getInstance();
         Hood hood = Hood.getInstance();
 
-        // Spin up shooter at fixed power
+        // spin up shooter
         SPIN_UP = () -> Commands.sequence(
                 Commands.runOnce(() -> shooter.setState(ShooterState.SHOOTING)),
-                Commands.runOnce(() -> shooter.startShooting(1)) // full power for now
+                Commands.runOnce(() -> shooter.startShooting1(0.9)),
+                Commands.waitMillis(500),
+                Commands.runOnce(() -> shooter.startShooting2(0.9))
         );
 
         // Stop shooter
         STOP = () -> Commands.sequence(
-                Commands.runOnce(shooter::stopShooting),
+                Commands.runOnce(shooter::stopShooting1),
+                Commands.runOnce(shooter::stopShooting2),
                 Commands.runOnce(() -> shooter.setState(ShooterState.RESTING))
         );
 
@@ -59,11 +61,7 @@ public class ShooterCommands {
                 Commands.runOnce(() -> hood.setAngle(30.0))
         );
 
-        // Spin up shooter for rejection - ideally half power
-        SPIN_SLOW = () -> Commands.sequence(
-                Commands.runOnce(() -> shooter.setState(ShooterState.REJECTION)),
-                Commands.runOnce(() -> shooter.startShooting(0.75)) // TODO: Test and Tune (TAT)
-        );
+
 
 
         // Automatically calculate hood angle based on AprilTag distance and spin up
@@ -119,18 +117,26 @@ public class ShooterCommands {
                     ); // TODO: fudge the values (TAT)
 
                     hood.setAngle(angle);
+                    Commands.sequence(
+                    Commands.runOnce(() -> shooter.startShooting1(-0.9)),
+                    Commands.waitMillis(500),
+                    Commands.runOnce(() -> shooter.startShooting2(-0.9))
+                    );
 
-                    Commands.runOnce(() -> shooter.startShooting(1.0));
                 })
         );
 
         SHOOT = () -> Commands.sequence(
                 SPIN_UP.get(),
                 Commands.waitSeconds(FLYWHEEL_SPINUP_TIME)
-                // TODO: Add actual shooting mechanism trigger here when ready
         );
 
-        REJECT = () -> SPIN_SLOW.get();
+        REJECT = () -> Commands.sequence(
+                Commands.runOnce(() -> shooter.setState(ShooterState.REJECTION)),
+                Commands.runOnce(() -> shooter.startShooting1(0.5)),
+                Commands.waitMillis(500),
+                Commands.runOnce(() -> shooter.startShooting2(0.5))
+        );
 
     }
 

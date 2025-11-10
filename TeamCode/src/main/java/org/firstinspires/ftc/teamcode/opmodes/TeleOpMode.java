@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import static org.firstinspires.ftc.teamcode.shooter.commands.ShooterCommands.AUTO_AIM;
+import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.DEFAULT_HEIGHT_DIFF;
 import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.FLYWHEEL_RPM;
 import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.WHEEL_DIAMETER;
 import static org.firstinspires.ftc.teamcode.vision.VisionConstants.arducam_cx;
@@ -22,6 +23,7 @@ import org.firstinspires.ftc.teamcode.indexer.Indexer;
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
 import org.firstinspires.ftc.teamcode.shooter.Shooter;
 import org.firstinspires.ftc.teamcode.shooter.Hood;
+import org.firstinspires.ftc.teamcode.shooter.commands.ShooterCommands;
 import org.firstinspires.ftc.teamcode.util.math.MathPM;
 import org.firstinspires.ftc.teamcode.vision.ATLivestream;
 import org.firstinspires.ftc.teamcode.vision.ATVision;
@@ -123,12 +125,8 @@ public class TeleOpMode extends OpMode {
                     if (tag != null && tag.ftcPose != null) {
                         rangeInches = tag.ftcPose.range;
 
-                        double exitVelocity = MathPM.calculateExitVelocity(
-                                FLYWHEEL_RPM, WHEEL_DIAMETER
-                        );
-
-                        calculatedAngle = MathPM.calculateLaunchAngle(
-                                MathPM.inchesToMeters(rangeInches), exitVelocity, MathPM.inchesToMeters(41.45)
+                        calculatedAngle = MathPM.calculateAngleFromRPM(
+                                FLYWHEEL_RPM, WHEEL_DIAMETER, 0.8, getTargetDistance(), DEFAULT_HEIGHT_DIFF
                         );
 
                         if (calculatedAngle > 0) {
@@ -159,7 +157,7 @@ public class TeleOpMode extends OpMode {
             }
 
             if (gamepad2.b) {
-                shooter.startShooting(0.5);
+                ShooterCommands.REJECT.get();
             }
 
             if (gamepad2.dpad_up) {
@@ -172,11 +170,11 @@ public class TeleOpMode extends OpMode {
 
 
         if (gamepad2.x) {
-            shooter.startShooting(-1.0);
+            ShooterCommands.SPIN_UP.get();
         }
 
         if (gamepad2.y) {
-            shooter.stopShooting();
+            ShooterCommands.STOP.get();
         }
 
 
@@ -240,5 +238,25 @@ public class TeleOpMode extends OpMode {
         double output = Math.signum(input) * Math.pow(Math.abs(input), scale);
 
         return output;
+    }
+
+    /**
+     * Gets the distance to the target using AprilTag detection
+     * @return distance in meters, or 0 if no valid detection
+     */
+    private static double getTargetDistance() {
+        ATVision vision = ATVision.getInstance();
+
+        if (vision == null || vision.getDetections().isEmpty()) {
+            return 0;
+        }
+
+        AprilTagDetection bestTag = vision.getDetections().get(0);
+
+        if (bestTag == null || bestTag.ftcPose == null) {
+            return 0;
+        }
+
+        return MathPM.inchesToMeters(bestTag.ftcPose.range);
     }
 }

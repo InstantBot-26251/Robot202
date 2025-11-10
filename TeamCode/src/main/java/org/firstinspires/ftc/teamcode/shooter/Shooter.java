@@ -1,17 +1,19 @@
 package org.firstinspires.ftc.teamcode.shooter;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
 import org.firstinspires.ftc.teamcode.robot.Enigma;
 import org.firstinspires.ftc.teamcode.util.hardware.InstantMotor;
-import org.firstinspires.ftc.teamcode.shooter.ShooterState;
 import org.firstinspires.ftc.teamcode.util.SubsystemTemplate;
 
 public class Shooter extends SubsystemTemplate {
 
-    InstantMotor shooter;
+    InstantMotor shooter1;
+    InstantMotor shooter2;
+
     Telemetry telemetry;
 
     ShooterState state;
@@ -29,17 +31,30 @@ public class Shooter extends SubsystemTemplate {
     @Override
     public void onAutonomousInit() {
         telemetry = Enigma.getInstance().getTelemetry();
-        shooter = new InstantMotor(RobotMap.getInstance().SHOOTER);
-        shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        shooter1 = new InstantMotor(RobotMap.getInstance().SHOOTER_1);
+        shooter2 = new InstantMotor(RobotMap.getInstance().SHOOTER_2);
+
+        shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        shooter1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         setState(ShooterState.RESTING);
-        periodic();
     }
 
     @Override
     public void onTeleopInit() {
         telemetry = Enigma.getInstance().getTelemetry();
-        shooter = new InstantMotor(RobotMap.getInstance().SHOOTER);
-        shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        shooter1 = new InstantMotor(RobotMap.getInstance().SHOOTER_1);
+        shooter2 = new InstantMotor(RobotMap.getInstance().SHOOTER_2);
+
+        shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        shooter1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         setState(ShooterState.RESTING);
     }
 
@@ -51,19 +66,32 @@ public class Shooter extends SubsystemTemplate {
         return "The state is " + state + " .";
     }
 
-    public void startShooting(double velocity) {
+    public void startShooting1(double velocity) {
         setState(ShooterState.SHOOTING);
-        shooter.setPower(velocity);
+        shooter1.setPower(velocity);
+    }
+    public void startShooting2(double velocity) {
+        setState(ShooterState.SHOOTING);
+        shooter2.setPower(velocity);
     }
 
-    public void reject() {
+    public void reject1() {
         setState(ShooterState.REJECTION);
-        shooter.setPower(0.75);
+        shooter1.setPower(0.5);
     }
 
-    public void stopShooting() {
+    public void reject2() {
+        setState(ShooterState.REJECTION);
+        shooter2.setPower(0.5);
+    }
+
+    public void stopShooting1() {
         setState(ShooterState.RESTING);
-        shooter.setPower(0);
+        shooter1.setPower(0);
+    }
+    public void stopShooting2() {
+        setState(ShooterState.RESTING);
+        shooter2.setPower(0);
     }
 
     @Override

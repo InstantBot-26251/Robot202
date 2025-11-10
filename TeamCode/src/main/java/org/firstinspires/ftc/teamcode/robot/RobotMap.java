@@ -34,7 +34,8 @@ public class RobotMap {
     public DcMotorEx MOTOR_BR;
 
     // Shooter motor
-    public DcMotorEx SHOOTER;
+    public DcMotorEx SHOOTER_1;
+    public DcMotorEx SHOOTER_2;
 
     // Hood servo
     public Servo HOOD;
@@ -78,7 +79,8 @@ public class RobotMap {
         MOTOR_BR = hardwareMap.get(DcMotorEx.class, "rr");
 
         // Shooter
-        SHOOTER = hardwareMap.get(DcMotorEx.class, "shooter");
+        SHOOTER_1 = hardwareMap.get(DcMotorEx.class, "shooter1");
+        SHOOTER_2 = hardwareMap.get(DcMotorEx.class, "shooter2");
         HOOD = hardwareMap.get(Servo.class, "hood");
 //
         // Indexer
@@ -102,7 +104,8 @@ public class RobotMap {
         devicesH.add(getInstance().MOTOR_FR);
         devicesH.add(getInstance().MOTOR_BL);
         devicesH.add(getInstance().MOTOR_BR);
-        devicesH.add(getInstance().SHOOTER);
+        devicesH.add(getInstance().SHOOTER_1);
+        devicesH.add(getInstance().SHOOTER_2);
         devicesH.add(getInstance().HOOD);
         devicesH.add(getInstance().INDEXER_ROTOR);
         devicesH.add(getInstance().INDEXER_HOPPER);
