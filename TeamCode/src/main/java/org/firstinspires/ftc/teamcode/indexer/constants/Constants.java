@@ -13,6 +13,12 @@ public class Constants {
     public static double ROTOR_kI = 0.0;
     public static double ROTOR_kD = 0.0001;
 
+    // UTIL
+    public static double SLOTS = 3;
+
+    public static int HALF = (int) (SLOTS / 2); // integer division
+
+
     // Position Constants - TUNE THESE
     public static double ENCODER_TICKS_PER_SLOT = 610; // Distance between slots in encoder ticks
     public static double TRANSFER_POSITION_OFFSET = 999; // Offset from slot 0 to transfer position

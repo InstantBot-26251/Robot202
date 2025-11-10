@@ -8,11 +8,11 @@ import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.PURPLE_
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.PURPLE_MIN_RATIO;
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.PURPLE_RED_THRESHOLD;
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_ERROR_TOLERANCE;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_MAX_POWER;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_MIN_POWER;
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_kD;
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_kI;
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_kP;
+import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.SLOTS;
+import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.HALF;
 import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.TRANSFER_POSITION_OFFSET;
 
 import android.util.Log;
@@ -176,28 +176,34 @@ public class Indexer extends SubsystemTemplate {
 
         state = IndexerState.ROTATING;
 
-        // Calculate forward rotation distance (always forward, never backward)
-        int slotsToRotate = (targetSlot - currentSlot + 3) % 3;
+        // Get current actual position
+        double currentPos = getRotorPosition();
 
-        // Calculate target encoder position (always add, never subtract)
-        double targetPos = getRotorPosition() + (slotsToRotate * ENCODER_TICKS_PER_SLOT);
+        // Normalize current position to [0, TICKS_PER_ROTATION)
+        double normalizedCurrentPos = normalizePosition(currentPos);
+
+        // Calculate target position in normalized space
+        double normalizedTargetPos = targetSlot * ENCODER_TICKS_PER_SLOT;
+
+        // Find shortest path
+        double distanceToMove = calculateShortestPath(normalizedCurrentPos, normalizedTargetPos);
+
+        // Apply movement to actual (non-normalized) position
+        double targetPos = currentPos + distanceToMove;
         rotorPid.setSetPoint(targetPos);
 
         currentSlot = targetSlot;
 
-        Log.i("Indexer", "Rotating " + slotsToRotate + " slot(s) forward to slot " + targetSlot);
-    }
+        String direction = distanceToMove >= 0 ? "forward" : "backward";
+        double slotsToRotate = Math.abs(distanceToMove / ENCODER_TICKS_PER_SLOT);
 
-    /**
-     * Rotates to the next slot (forward only)
-     */
-    public void rotateToNextSlot() {
-        int nextSlot = (currentSlot + 1) % 3;
-        rotateToSlot(nextSlot);
+        Log.i("Indexer", String.format("Rotating %.2f slot(s) %s to slot %d (from %.0f to %.0f)",
+                slotsToRotate, direction, targetSlot, currentPos, targetPos));
     }
 
     /**
      * Rotates to transfer position (where hopper kicks artifacts to shooter)
+     * This works correctly regardless of how many full rotations have occurred
      */
     public void rotateToTransferPosition() {
         if (!isCalibrated) {
@@ -207,14 +213,42 @@ public class Indexer extends SubsystemTemplate {
 
         state = IndexerState.ROTATING;
 
-        // Calculate target position based on current slot
-        double currentTargetPos = currentSlot * ENCODER_TICKS_PER_SLOT;
-        double transferPos = currentTargetPos + TRANSFER_POSITION_OFFSET;
+        // Get current actual position
+        double currentPos = getRotorPosition();
 
-        rotorPid.setSetPoint(transferPos);
+        // Normalize current position to [0, TICKS_PER_ROTATION)
+        double normalizedCurrentPos = normalizePosition(currentPos);
 
-        Log.i("Indexer", "Rotating to transfer position from slot " + currentSlot);
+        // Transfer position is always at this fixed position in normalized space
+        // (TRANSFER_POSITION_OFFSET ticks past slot 0)
+        double normalizedTargetPos = TRANSFER_POSITION_OFFSET;
+
+        // Handle case where transfer position might exceed one rotation
+        if (normalizedTargetPos >= ENCODER_TICKS_PER_SLOT * SLOTS) {
+            normalizedTargetPos = normalizePosition(normalizedTargetPos);
+        }
+
+        // Find shortest path
+        double distanceToMove = calculateShortestPath(normalizedCurrentPos, normalizedTargetPos);
+
+        // Apply movement to actual (non-normalized) position
+        double targetPos = currentPos + distanceToMove;
+        rotorPid.setSetPoint(targetPos);
+
+        String direction = distanceToMove >= 0 ? "forward" : "backward";
+
+        Log.i("Indexer", String.format("Rotating %s to transfer position (from %.0f to %.0f, distance: %.0f)",
+                direction, currentPos, targetPos, distanceToMove));
     }
+
+    /**
+     * Rotates to the next slot (shortest path)
+     */
+    public void rotateToNextSlot() {
+        int nextSlot = (currentSlot + 1) % (int)SLOTS;
+        rotateToSlot(nextSlot);
+    }
+
 
     /**
      * Stops rotor motor
@@ -447,6 +481,45 @@ public class Indexer extends SubsystemTemplate {
             default: return null;
         }
     }
+
+    //------------------------POSITION TRACKING--------------------------------------//
+    /**
+     * Normalizes an encoder position to range [0, TICKS_PER_ROTATION)
+     * This keeps position values manageable and simplifies rotation math
+     */
+    private double normalizePosition(double position) {
+        double ticksPerRotation = ENCODER_TICKS_PER_SLOT * SLOTS;
+        // Use modulus arithmetic to wrap position into one rotation
+        double normalized = position % ticksPerRotation;
+        // Handle negative positions
+        if (normalized < 0) {
+            normalized += ticksPerRotation;
+        }
+        return normalized;
+    }
+
+    /**
+     * Calculates the shortest distance to move from current to target position
+     * Returns positive for forward movement, negative for backward movement
+     */
+    private double calculateShortestPath(double currentNormalized, double targetNormalized) {
+        double ticksPerRotation = ENCODER_TICKS_PER_SLOT * SLOTS;
+
+        // Calculate forward distance
+        double forwardDist = (targetNormalized - currentNormalized + ticksPerRotation) % ticksPerRotation;
+
+        // Calculate backward distance
+        double backwardDist = (currentNormalized - targetNormalized + ticksPerRotation) % ticksPerRotation;
+
+        // Return the shorter path (negative if backward)
+        if (forwardDist <= backwardDist) {
+            return forwardDist;
+        } else {
+            return -backwardDist;
+        }
+    }
+
+
 
     //------------------------GETTERS & SETTERS-----------------------------//
 
