@@ -22,6 +22,7 @@ public class MathPM {
      * @param heightDifference Height difference between shooter and target (meters, positive if target is higher)
      * @return Launch angle in degrees, or -1 if no solution exists
      */
+
     public static double calculateLaunchAngle(double distance, double initialVelocity, double heightDifference) {
         // Using my equations
         double v2 = initialVelocity * initialVelocity;

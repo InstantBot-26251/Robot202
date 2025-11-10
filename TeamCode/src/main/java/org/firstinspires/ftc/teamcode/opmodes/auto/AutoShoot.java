@@ -182,15 +182,15 @@ public class AutoShoot extends OpMode {
 
             case SHOOTARTIFACT1:
                 if (!hasStartedShooting) {
-                    // First time in this state - start shooting
+                    // start shooting
                     hood.setAngle(calculatedAngle);
                     indexer.startHopper();
                     shooter.startShooting(1);
                     hasStartedShooting = true;
 
                 } else if (elapsedTime < SHOOT_TIME) {
-                    // Continue shooting until time expires
-                    // Motors are already running, just wait
+                    // continue shooting until the time runs out
+                    //  just wait -- motors already running
                 } else {
                     // stop everything
                     indexer.stopHopper();
@@ -200,6 +200,9 @@ public class AutoShoot extends OpMode {
                      stateStartTime = runtime.seconds();
                      break;
                 }
+            case MOVEOFFLINE:
+                chassis.strafeRight();
+                break;
         }
 
         telemetry.addData("Current State", currentState);

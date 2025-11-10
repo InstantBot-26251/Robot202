@@ -96,6 +96,13 @@ public class Chassis {
         br.setPower(0);
     }
 
+    public void strafeRight() {
+        fl.setPower(0.5);
+        fr.setPower(-0.5);
+        br.setPower(0.5);
+        bl.setPower(-0.5);
+    }
+
 //    public void resetYaw() {
 //        otos.resetTracking();
 //    }
