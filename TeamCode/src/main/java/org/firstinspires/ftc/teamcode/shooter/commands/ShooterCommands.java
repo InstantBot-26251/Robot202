@@ -33,6 +33,7 @@ public class ShooterCommands {
     public static final Supplier<Command> AUTO_AIM_AND_SHOOT; // This is what Enigma needs!
     public static final Supplier<Command> SHOOT;
     public static final Supplier<Command> REJECT;
+    public static final Supplier<Command> INTAKE;
 
 
 
@@ -44,9 +45,9 @@ public class ShooterCommands {
         // spin up shooter
         SPIN_UP = () -> Commands.sequence(
                 Commands.runOnce(() -> shooter.setState(ShooterState.SHOOTING)),
-                Commands.runOnce(() -> shooter.startShooting1(0.9)),
+                Commands.runOnce(() -> shooter.startShooting1(-0.9)),
                 Commands.waitMillis(500),
-                Commands.runOnce(() -> shooter.startShooting2(0.9))
+                Commands.runOnce(() -> shooter.startShooting2(-0.9))
         );
 
         // Stop shooter
@@ -132,10 +133,17 @@ public class ShooterCommands {
         );
 
         REJECT = () -> Commands.sequence(
-                Commands.runOnce(() -> shooter.setState(ShooterState.REJECTION)),
+                Commands.runOnce(() -> shooter.setState(ShooterState.REJECTING)),
                 Commands.runOnce(() -> shooter.startShooting1(0.5)),
                 Commands.waitMillis(500),
                 Commands.runOnce(() -> shooter.startShooting2(0.5))
+        );
+
+        INTAKE = () -> Commands.sequence(
+                Commands.runOnce(() -> shooter.setState(ShooterState.INTAKING)),
+                Commands.runOnce(() -> shooter.startShooting1(0.25)),
+                Commands.waitMillis(500),
+                Commands.runOnce(() -> shooter.startShooting2(0.25))
         );
 
     }

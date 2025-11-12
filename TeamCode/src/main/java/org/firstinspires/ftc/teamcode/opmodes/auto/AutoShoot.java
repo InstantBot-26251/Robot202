@@ -24,6 +24,7 @@ import org.firstinspires.ftc.teamcode.indexer.Indexer;
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
 import org.firstinspires.ftc.teamcode.shooter.Hood;
 import org.firstinspires.ftc.teamcode.shooter.Shooter;
+import org.firstinspires.ftc.teamcode.shooter.commands.ShooterCommands;
 import org.firstinspires.ftc.teamcode.util.math.MathPM;
 import org.firstinspires.ftc.teamcode.vision.ATLivestream;
 import org.firstinspires.ftc.teamcode.vision.ATVision;
@@ -185,7 +186,7 @@ public class AutoShoot extends OpMode {
                     // start shooting
                     hood.setAngle(calculatedAngle);
                     indexer.startHopper();
-                    shooter.startShooting(1);
+                    ShooterCommands.SHOOT.get();
                     hasStartedShooting = true;
 
                 } else if (elapsedTime < SHOOT_TIME) {
@@ -194,7 +195,7 @@ public class AutoShoot extends OpMode {
                 } else {
                     // stop everything
                     indexer.stopHopper();
-                    shooter.stopShooting();
+                    ShooterCommands.STOP.get();
                     // transition to next state
                      currentState = AutoState.INDEXARTIFACT1;
                      stateStartTime = runtime.seconds();

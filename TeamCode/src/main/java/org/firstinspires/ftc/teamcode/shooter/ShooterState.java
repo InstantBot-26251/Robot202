@@ -1,5 +1,5 @@
 package org.firstinspires.ftc.teamcode.shooter;
 
 public enum ShooterState {
-    RESTING, SHOOTING, REJECTION
+    RESTING, SHOOTING, REJECTING, INTAKING
 }

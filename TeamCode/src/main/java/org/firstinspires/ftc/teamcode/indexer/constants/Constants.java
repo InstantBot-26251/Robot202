@@ -20,7 +20,7 @@ public class Constants {
 
 
     // Position Constants - TUNE THESE
-    public static double ENCODER_TICKS_PER_SLOT = 610; // Distance between slots in encoder ticks
+    public static double ENCODER_TICKS_PER_SLOT = 400; // Distance between slots in encoder ticks
     public static double TRANSFER_POSITION_OFFSET = 999; // Offset from slot 0 to transfer position
 
     // Control Constants

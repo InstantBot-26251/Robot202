@@ -23,6 +23,7 @@ import org.firstinspires.ftc.teamcode.indexer.Indexer;
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
 import org.firstinspires.ftc.teamcode.shooter.Shooter;
 import org.firstinspires.ftc.teamcode.shooter.Hood;
+import org.firstinspires.ftc.teamcode.shooter.ShooterState;
 import org.firstinspires.ftc.teamcode.shooter.commands.ShooterCommands;
 import org.firstinspires.ftc.teamcode.util.math.MathPM;
 import org.firstinspires.ftc.teamcode.vision.ATLivestream;
@@ -40,6 +41,8 @@ public class TeleOpMode extends OpMode {
     double x, y, rx;
 
     private static final int DASHBOARD_FPS = 10;
+
+    private MultipleTelemetry multiTelemetry;
 
     private FtcDashboard dashboard;
 
@@ -66,6 +69,9 @@ public class TeleOpMode extends OpMode {
 
     @Override
     public void init() {
+        dashboard = FtcDashboard.getInstance();
+        multiTelemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
+
         RobotMap.getInstance().init(hardwareMap);
         indexer = Indexer.getInstance();
         shooter = Shooter.getInstance();
@@ -92,14 +98,15 @@ public class TeleOpMode extends OpMode {
                     .addProcessor(atLivestream)
                     .addProcessor(aprilTagProcessor)
                     .build();
+
             // Stream to dashboard for visualization
             dashboard.startCameraStream((org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource) atLivestream, DASHBOARD_FPS);
 
-
-            telemetry.addLine("VisionPortal initialized successfully.");
+            multiTelemetry.addLine("VisionPortal initialized successfully.");
         } catch (Exception e) {
-            telemetry.addLine("Initialization error: " + e.toString());
+            multiTelemetry.addLine("Initialization error: " + e.toString());
         }
+
 
 
         chassis = new Chassis(hardwareMap);
@@ -107,8 +114,8 @@ public class TeleOpMode extends OpMode {
 
     @Override
     public void loop() {
-        y = -applyResponseCurve(gamepad1.left_stick_y, DRIVER_RESPONSE);
-        x = -applyResponseCurve(gamepad1.left_stick_x, DRIVER_RESPONSE);
+        y = applyResponseCurve(gamepad1.left_stick_y, DRIVER_RESPONSE);
+        x = applyResponseCurve(gamepad1.left_stick_x, DRIVER_RESPONSE);
         rx = applyResponseCurve(gamepad1.right_stick_x, DRIVER_RESPONSE);
 
         double calculatedAngle = -1;
@@ -157,7 +164,9 @@ public class TeleOpMode extends OpMode {
             }
 
             if (gamepad2.b) {
-                ShooterCommands.REJECT.get();
+                shooter.setState(ShooterState.INTAKING);
+                shooter.startShooting1(0.25);
+                shooter.startShooting2(0.25);
             }
 
             if (gamepad2.dpad_up) {
@@ -170,11 +179,15 @@ public class TeleOpMode extends OpMode {
 
 
         if (gamepad2.x) {
-            ShooterCommands.SPIN_UP.get();
+            shooter.setState(ShooterState.SHOOTING);
+            shooter.startShooting1(-0.9);
+            shooter.startShooting2(-0.9);
         }
 
         if (gamepad2.y) {
-            ShooterCommands.STOP.get();
+            shooter.setState(ShooterState.RESTING);
+            shooter.startShooting2(0);
+            shooter.startShooting1(0);
         }
 
 
@@ -205,6 +218,7 @@ public class TeleOpMode extends OpMode {
         telemetry.addData("Slot", indexer.getCurrentSlot());
         telemetry.addData("Hood Angle", hood.getCurrentAngle());
         telemetry.addData("Hood Position", hood.hoodServo.getPosition());
+        telemetry.addData("Shooter State", shooter.getState());
         telemetry.addData("Motor Velocity (fl), ", chassis.fl.getVelocity());
         telemetry.addData("Motor Velocity (fr), ", chassis.fr.getVelocity());
         telemetry.addData("Motor Velocity (bl), ", chassis.bl.getVelocity());

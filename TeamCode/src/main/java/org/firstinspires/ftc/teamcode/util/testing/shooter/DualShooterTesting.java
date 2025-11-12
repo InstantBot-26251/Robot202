@@ -11,7 +11,7 @@ public class DualShooterTesting extends OpMode {
 
     @Override
     public void init() {
-        shooter1 = hardwareMap.get(DcMotorEx.class, "shooter");
+        shooter1 = hardwareMap.get(DcMotorEx.class, "shooter1");
         shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
 
         shooter2.setDirection(DcMotorSimple.Direction.REVERSE);

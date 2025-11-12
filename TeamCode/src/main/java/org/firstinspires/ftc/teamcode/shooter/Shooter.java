@@ -37,9 +37,6 @@ public class Shooter extends SubsystemTemplate {
 
         shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        shooter1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
         setState(ShooterState.RESTING);
     }
 
@@ -76,12 +73,12 @@ public class Shooter extends SubsystemTemplate {
     }
 
     public void reject1() {
-        setState(ShooterState.REJECTION);
+        setState(ShooterState.REJECTING);
         shooter1.setPower(0.5);
     }
 
     public void reject2() {
-        setState(ShooterState.REJECTION);
+        setState(ShooterState.REJECTING);
         shooter2.setPower(0.5);
     }
 

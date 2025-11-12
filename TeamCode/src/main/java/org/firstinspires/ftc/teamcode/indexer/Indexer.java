@@ -176,30 +176,18 @@ public class Indexer extends SubsystemTemplate {
 
         state = IndexerState.ROTATING;
 
-        // Get current actual position
-        double currentPos = getRotorPosition();
+        // Calculate forward rotation distance (always forward, never backward)
+        int slotsToRotate = (targetSlot - currentSlot + 3) % 3;
 
-        // Normalize current position to [0, TICKS_PER_ROTATION)
-        double normalizedCurrentPos = normalizePosition(currentPos);
-
-        // Calculate target position in normalized space
-        double normalizedTargetPos = targetSlot * ENCODER_TICKS_PER_SLOT;
-
-        // Find shortest path
-        double distanceToMove = calculateShortestPath(normalizedCurrentPos, normalizedTargetPos);
-
-        // Apply movement to actual (non-normalized) position
-        double targetPos = currentPos + distanceToMove;
+        // Calculate target encoder position (always add, never subtract)
+        double targetPos = getRotorPosition() + (slotsToRotate * ENCODER_TICKS_PER_SLOT);
         rotorPid.setSetPoint(targetPos);
 
         currentSlot = targetSlot;
 
-        String direction = distanceToMove >= 0 ? "forward" : "backward";
-        double slotsToRotate = Math.abs(distanceToMove / ENCODER_TICKS_PER_SLOT);
-
-        Log.i("Indexer", String.format("Rotating %.2f slot(s) %s to slot %d (from %.0f to %.0f)",
-                slotsToRotate, direction, targetSlot, currentPos, targetPos));
+        Log.i("Indexer", "Rotating " + slotsToRotate + " slot(s) forward to slot " + targetSlot);
     }
+
 
     /**
      * Rotates to transfer position (where hopper kicks artifacts to shooter)
@@ -245,7 +233,7 @@ public class Indexer extends SubsystemTemplate {
      * Rotates to the next slot (shortest path)
      */
     public void rotateToNextSlot() {
-        int nextSlot = (currentSlot + 1) % (int)SLOTS;
+        int nextSlot = (currentSlot + 1) % 3;
         rotateToSlot(nextSlot);
     }
 
