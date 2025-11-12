@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.util.testing.indexer;
 
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_kD;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_kI;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_kP;
+import static org.firstinspires.ftc.teamcode.indexer.IndexerConstants.ROTOR_kD;
+import static org.firstinspires.ftc.teamcode.indexer.IndexerConstants.ROTOR_kI;
+import static org.firstinspires.ftc.teamcode.indexer.IndexerConstants.ROTOR_kP;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -80,7 +80,7 @@ public class IndexerPIDTuning extends OpMode {
                 indexer.rotateToNextSlot();
             }
 
-            // DPAD_DOWN - Go to transfer
+            // DPAD_DOWN - Go to next slot
             if (gamepad1.dpad_down) {
                 indexer.rotateToSlot(indexer.getRotorPosition() - TICKS_PER_SLOT);
             }

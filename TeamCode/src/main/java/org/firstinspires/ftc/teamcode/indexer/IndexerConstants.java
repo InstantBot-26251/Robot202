@@ -1,9 +1,9 @@
-package org.firstinspires.ftc.teamcode.indexer.constants;
+package org.firstinspires.ftc.teamcode.indexer;
 
 import com.acmerobotics.dashboard.config.Config;
 
 @Config
-public class Constants {
+public class IndexerConstants {
 
     /**
      * ROTOR PID CONTROL

@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.indexer.commands;
 
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.*;
+import static org.firstinspires.ftc.teamcode.indexer.IndexerConstants.*;
 
 import android.util.Log;
 

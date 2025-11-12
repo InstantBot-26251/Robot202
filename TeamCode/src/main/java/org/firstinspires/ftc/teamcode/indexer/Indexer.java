@@ -2,18 +2,17 @@ package org.firstinspires.ftc.teamcode.indexer;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ENCODER_TICKS_PER_SLOT;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.GREEN_THRESHOLD;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.PURPLE_BLUE_THRESHOLD;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.PURPLE_MIN_RATIO;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.PURPLE_RED_THRESHOLD;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_ERROR_TOLERANCE;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_kD;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_kI;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.ROTOR_kP;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.SLOTS;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.HALF;
-import static org.firstinspires.ftc.teamcode.indexer.constants.Constants.TRANSFER_POSITION_OFFSET;
+import static org.firstinspires.ftc.teamcode.indexer.IndexerConstants.ENCODER_TICKS_PER_SLOT;
+import static org.firstinspires.ftc.teamcode.indexer.IndexerConstants.GREEN_THRESHOLD;
+import static org.firstinspires.ftc.teamcode.indexer.IndexerConstants.PURPLE_BLUE_THRESHOLD;
+import static org.firstinspires.ftc.teamcode.indexer.IndexerConstants.PURPLE_MIN_RATIO;
+import static org.firstinspires.ftc.teamcode.indexer.IndexerConstants.PURPLE_RED_THRESHOLD;
+import static org.firstinspires.ftc.teamcode.indexer.IndexerConstants.ROTOR_ERROR_TOLERANCE;
+import static org.firstinspires.ftc.teamcode.indexer.IndexerConstants.ROTOR_kD;
+import static org.firstinspires.ftc.teamcode.indexer.IndexerConstants.ROTOR_kI;
+import static org.firstinspires.ftc.teamcode.indexer.IndexerConstants.ROTOR_kP;
+import static org.firstinspires.ftc.teamcode.indexer.IndexerConstants.SLOTS;
+import static org.firstinspires.ftc.teamcode.indexer.IndexerConstants.TRANSFER_POSITION_OFFSET;
 
 import android.util.Log;
 
