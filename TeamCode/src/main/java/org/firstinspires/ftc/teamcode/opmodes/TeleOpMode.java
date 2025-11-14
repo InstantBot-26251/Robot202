@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import static org.firstinspires.ftc.teamcode.shooter.commands.ShooterCommands.AUTO_AIM;
 import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.DEFAULT_HEIGHT_DIFF;
+import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.DRAG_COEFFICIENT;
 import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.FLYWHEEL_RPM;
 import static org.firstinspires.ftc.teamcode.shooter.constants.Constants.WHEEL_DIAMETER;
 import static org.firstinspires.ftc.teamcode.vision.VisionConstants.arducam_cx;
@@ -19,7 +20,9 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.chassis.Chassis;
+import org.firstinspires.ftc.teamcode.chassis.PedroChassis;
 import org.firstinspires.ftc.teamcode.indexer.Indexer;
+import org.firstinspires.ftc.teamcode.robot.Enigma;
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
 import org.firstinspires.ftc.teamcode.shooter.Shooter;
 import org.firstinspires.ftc.teamcode.shooter.Hood;
@@ -37,14 +40,16 @@ import java.util.List;
 
 @TeleOp(name = "TeleOp", group = "opmodes")
 public class TeleOpMode extends OpMode {
-    Chassis chassis;
+//    Chassis chassis;
+
+    private PedroChassis chassis;
+
     double x, y, rx;
 
     private static final int DASHBOARD_FPS = 10;
 
-    private MultipleTelemetry multiTelemetry;
-
     private FtcDashboard dashboard;
+    private MultipleTelemetry multiTelemetry;
 
     private VisionPortal visionPortal;
     private ATLivestream atLivestream;
@@ -73,6 +78,11 @@ public class TeleOpMode extends OpMode {
         multiTelemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
 
         RobotMap.getInstance().init(hardwareMap);
+
+        chassis = PedroChassis.getInstance();
+
+        chassis.onTeleopInit();
+
         indexer = Indexer.getInstance();
         shooter = Shooter.getInstance();
         hood = Hood.getInstance();
@@ -108,19 +118,20 @@ public class TeleOpMode extends OpMode {
         }
 
 
-
-        chassis = new Chassis(hardwareMap);
     }
 
     @Override
     public void loop() {
+        chassis.periodic();   // MUST update follower() each loop
+
         y = applyResponseCurve(gamepad1.left_stick_y, DRIVER_RESPONSE);
         x = applyResponseCurve(gamepad1.left_stick_x, DRIVER_RESPONSE);
         rx = applyResponseCurve(gamepad1.right_stick_x, DRIVER_RESPONSE);
 
+        chassis.setDriveVectors(y, x, rx);
+
         double calculatedAngle = -1;
         double rangeInches = -1;
-
 
         if (aprilTagProcessor != null) {
             List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
@@ -132,14 +143,29 @@ public class TeleOpMode extends OpMode {
                     if (tag != null && tag.ftcPose != null) {
                         rangeInches = tag.ftcPose.range;
 
-                        calculatedAngle = MathPM.calculateAngleFromRPM(
-                                FLYWHEEL_RPM, WHEEL_DIAMETER, 0.8, getTargetDistance(), DEFAULT_HEIGHT_DIFF
+                        double exitVelocity = MathPM.calculateExitVelocity(
+                                FLYWHEEL_RPM, WHEEL_DIAMETER
+                        );
+
+                        calculatedAngle = MathPM.calculateLaunchAngle(
+                                MathPM.inchesToMeters(rangeInches), exitVelocity, MathPM.inchesToMeters(41.45)
                         );
 
                         if (calculatedAngle > 0) {
                             // clamp to 0–70
-                            calculatedAngle = Math.max(0, Math.min(70, calculatedAngle));
-                        }                   }}}}
+                            calculatedAngle = Math.max(0, Math.min(73, calculatedAngle));
+                        }
+
+                        if (calculatedAngle == -1 && rangeInches > 140) {
+                            calculatedAngle = 73;
+                        }
+
+                    }
+                }
+            }
+        }
+
+
 //        boolean manualHeld = gamepad2.left_bumper;
 
 
@@ -159,9 +185,6 @@ public class TeleOpMode extends OpMode {
             hood.hoodServo.setPosition(gamepad2.right_stick_y);
 
 
-            if (gamepad2.a) {
-                indexer.rotateToNextSlot();
-            }
 
             if (gamepad2.b) {
                 shooter.setState(ShooterState.INTAKING);
@@ -190,21 +213,36 @@ public class TeleOpMode extends OpMode {
             shooter.startShooting1(0);
         }
 
-
-        if (gamepad2.dpad_left) {
+        if (gamepad2.left_bumper) {
             hood.setAngle(calculatedAngle);
         }
 
+        if (gamepad2.dpad_left) {
+            indexer.rotateToNextSlot();
+        }
+
         if (gamepad2.dpad_right) {
-            hood.setDefaultPosition();
+            indexer.rotateToPreviousSlot();
         }
 
         // DRIVER CONTROLS
-        if (gamepad1.y){
-            chassis.resetYaw();
+
+        if (gamepad1.right_bumper) {
+            chassis.enableSlowMode();
+        } else {
+            chassis.disableSlowMode();
+        }
+        // RESET HEADING
+        if (gamepad1.y) {
+            chassis.resetHeading();
         }
 
-        chassis.drive(x, y, rx);
+
+//        if (gamepad1.y){
+//            chassis.resetYaw();
+//        }
+
+//        chassis.drive(x, y, rx);
 
         // Always run periodic
         indexer.periodic();
@@ -219,12 +257,13 @@ public class TeleOpMode extends OpMode {
         telemetry.addData("Hood Angle", hood.getCurrentAngle());
         telemetry.addData("Hood Position", hood.hoodServo.getPosition());
         telemetry.addData("Shooter State", shooter.getState());
-        telemetry.addData("Motor Velocity (fl), ", chassis.fl.getVelocity());
-        telemetry.addData("Motor Velocity (fr), ", chassis.fr.getVelocity());
-        telemetry.addData("Motor Velocity (bl), ", chassis.bl.getVelocity());
-        telemetry.addData("Motor Velocity (br), ", chassis.br.getVelocity());
+//        telemetry.addData("Motor Velocity (fl), ", chassis.fl.getVelocity());
+//        telemetry.addData("Motor Velocity (fr), ", chassis.fr.getVelocity());
+//        telemetry.addData("Motor Velocity (bl), ", chassis.bl.getVelocity());
+//        telemetry.addData("Motor Velocity (br), ", chassis.br.getVelocity());
         telemetry.update();
     }
+
 
 
 //    private void snapIndexerToNearestSlot() {

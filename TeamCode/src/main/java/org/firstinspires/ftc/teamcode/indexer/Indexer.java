@@ -228,6 +228,21 @@ public class Indexer extends SubsystemTemplate {
                 direction, currentPos, targetPos, distanceToMove));
     }
 
+    public void rotateToPreviousSlot() {
+        if (!isCalibrated) {
+            Log.e("Indexer", "Cannot rotate previous: indexer not calibrated");
+            return;
+        }
+
+        // Wrap-around backwards slot selection
+        int previousSlot = (currentSlot - 1 + 3) % 3;
+
+        Log.i("Indexer", "Rotating to previous slot: " + previousSlot);
+
+        rotateToSlot(previousSlot);
+    }
+
+
     /**
      * Rotates to the next slot (shortest path)
      */

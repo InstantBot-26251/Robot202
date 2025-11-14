@@ -73,7 +73,6 @@ public class ShooterCommands {
                     if (distance == -1) {
                         // No valid target detected, use default angle
                         Log.i("Warning", ": No valid target detected for auto-aim");
-                        String telemetry = "Not able to shoot";
                         hood.setAngle(0);
                     } else if (distance > 0) {
                         double angle = MathPM.calculateAngleFromRPM(
