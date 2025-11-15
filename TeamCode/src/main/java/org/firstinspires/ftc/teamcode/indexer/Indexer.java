@@ -239,7 +239,8 @@ public class Indexer extends SubsystemTemplate {
 
         Log.i("Indexer", "Rotating to previous slot: " + previousSlot);
 
-        rotateToSlot(previousSlot);
+        double targetPos = getRotorPosition() - ENCODER_TICKS_PER_SLOT;
+        rotorPid.setSetPoint(targetPos);
     }
 
 
@@ -594,6 +595,19 @@ public class Indexer extends SubsystemTemplate {
         rotorMotor.setPower(power);
     }
 
+    public void cancelPIDMovement() {
+        // Change state FIRST - this prevents periodic() from continuing to run PID
+        state = IndexerState.IDLE;
+
+        // Stop the motor immediately
+        rotorMotor.setPower(0);
+
+        // Reset PID setpoint to current position to prevent any further movement
+        rotorPid.setSetPoint(getRotorPosition());
+
+        // Log for debugging
+        Log.i("Indexer", "PID movement canceled - manual control active at position " + getRotorPosition());
+    }
 
     @Override
     public void periodic() {

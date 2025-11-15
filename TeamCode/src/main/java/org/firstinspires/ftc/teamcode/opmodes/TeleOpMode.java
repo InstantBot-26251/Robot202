@@ -197,17 +197,17 @@ public class TeleOpMode extends OpMode {
 
             }
         }
-
-        if (RIGHT && !prevRIGHT && calculatedAngle > 0) {
-            hoodLocked = true;
-            lockedAngle = calculatedAngle;
-            hood.setAngle(lockedAngle);
-        }
-        if (LEFT && !prevLEFT) {
-            hoodLocked = false; // unlock hood
-        }
-        prevRIGHT = RIGHT;
-        prevLEFT = LEFT;
+//
+//        if (RIGHT && !prevRIGHT && calculatedAngle > 0) {
+//            hoodLocked = true;
+//            lockedAngle = calculatedAngle;
+//            hood.setAngle(lockedAngle);
+//        }
+//        if (LEFT && !prevLEFT) {
+//            hoodLocked = false; // unlock hood
+//        }
+//        prevRIGHT = RIGHT;
+//        prevLEFT = LEFT;
 
 
 //        boolean manualHeld = gamepad2.left_bumper;
@@ -216,8 +216,8 @@ public class TeleOpMode extends OpMode {
 //        if (manualHeld) {
 //            wasManual = true;
 
-            double power = -applyResponseCurve(gamepad2.left_stick_y * 0.7, MANIP_RESPONSE);
-            indexer.setPower(power);
+        double power = -applyResponseCurve(gamepad2.left_stick_y * 0.7, MANIP_RESPONSE);
+        indexer.setPower(power);
 
 //        } else {
 //
@@ -228,22 +228,23 @@ public class TeleOpMode extends OpMode {
 
 
 
-            if (gamepad2.b) {
-                shooter.setState(ShooterState.INTAKING);
-                shooter.startShooting1(0.25);
-                shooter.startShooting2(0.25);
-            }
+        if (gamepad2.b) {
+            shooter.setState(ShooterState.INTAKING);
+            shooter.startShooting1(0.25);
+            shooter.startShooting2(0.25);
+        }
 
-            if (gamepad2.dpad_up) {
-                indexer.startHopper();
-            }
+        if (gamepad2.dpad_up) {
+            indexer.startHopper();
+        }
 
-            if (gamepad2.dpad_down) {
-                indexer.stopHopper();
-            }
+        if (gamepad2.dpad_down) {
+            indexer.stopHopper();
+        }
 
 
         if (gamepad2.x) {
+            hood.hoodServo.setPosition(0.5);
             shooter.setState(ShooterState.SHOOTING);
             shooter.startShooting1(-0.9);
             shooter.startShooting2(-0.9);
@@ -255,21 +256,22 @@ public class TeleOpMode extends OpMode {
             shooter.startShooting1(0);
         }
 
-        if (gamepad2.left_bumper) {
+        if (gamepad2.dpad_left) {
             hood.setAngle(calculatedAngle);
         }
 
-        if (gamepad2.dpad_left) {
+        if (gamepad2.right_bumper) {
             indexer.rotateToNextSlot();
         }
 
-        if (gamepad2.dpad_right) {
+        if (gamepad2.left_bumper) {
             indexer.rotateToPreviousSlot();
         }
 
         if (gamepad2.a) {
-            shooter.startShooting1(-0.75);
-            shooter.startShooting2(-0.75);
+            hood.hoodServo.setPosition(0.95);
+            shooter.startShooting1(-0.63);
+            shooter.startShooting2(-0.63);
         }
 
         // DRIVER CONTROLS

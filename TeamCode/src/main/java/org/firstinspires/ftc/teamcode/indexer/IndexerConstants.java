@@ -9,9 +9,9 @@ public class IndexerConstants {
      * ROTOR PID CONTROL
      */
     // PID Constants - TUNE THESE
-    public static double ROTOR_kP = 0.0013;
+    public static double ROTOR_kP = 0.0001;
     public static double ROTOR_kI = 0.0;
-    public static double ROTOR_kD = 0.0001;
+    public static double ROTOR_kD = 0.002;
 
     // UTIL
     public static double SLOTS = 3;
@@ -24,6 +24,12 @@ public class IndexerConstants {
     public static double ROTOR_ERROR_TOLERANCE = 10.0; // Encoder ticks
     public static double ROTOR_MAX_POWER = 1;
     public static double ROTOR_MIN_POWER = -1;
+
+    // Motion profile constraints - TUNE THESE
+    private static final double MAX_VELOCITY = 2000;        // ticks/sec
+    private static final double MAX_ACCELERATION = 3500;    // ticks/sec²
+    private static final double JERK_TIME = 0.25;           // seconds
+
 
     /**
      * HOPPER CONTROL
