@@ -222,6 +222,9 @@ public class TeleOpMode extends OpMode {
 //        } else {
 //
 //            if (wasManual) {
+
+
+
 //                wasManual = false;
 //                snapIndexerToNearestSlot();
 //            }
