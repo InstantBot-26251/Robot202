@@ -43,6 +43,10 @@ public class MathPM {
         double angle1Deg = Math.toDegrees(angle1);
         double angle2Deg = Math.toDegrees(angle2);
 
+        if (distance > 140) {
+            angle1Deg = 73;
+            angle2Deg = 73;
+        }
         // Return the angle that's positive and reasonable
         if (angle1Deg >= 0 && angle1Deg <= 90) {
             return angle1Deg;
@@ -51,6 +55,7 @@ public class MathPM {
         } else {
             return -1; // No valid solution
         }
+
     }
 
     /**

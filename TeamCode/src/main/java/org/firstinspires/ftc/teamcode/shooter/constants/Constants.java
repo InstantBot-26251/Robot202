@@ -8,7 +8,7 @@ public class Constants {
     public static double TEST_HOOD_ANGLE = 30.0;
     public static double DEFAULT_HEIGHT_DIFF = MathPM.inchesToMeters(41.45); // meters
     public static double FLYWHEEL_RPM = 4250;
-    public static double WHEEL_DIAMETER = MathPM.inchesToMeters(1.93);
+    public static double WHEEL_DIAMETER = MathPM.inchesToMeters(3.77953);
     public static double DRAG_COEFFICIENT = 0.8;
     public static double FLYWHEEL_SPINUP_TIME = 0.3;
 }

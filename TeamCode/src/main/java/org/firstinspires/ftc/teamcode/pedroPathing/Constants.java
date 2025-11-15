@@ -43,7 +43,7 @@ public class Constants {
     public static OTOSConstants localizerConstants = new OTOSConstants()
             .hardwareMapName("otos")
             .linearUnit(DistanceUnit.INCH)
-            .offset(new SparkFunOTOS.Pose2D(0.75, 1.25, Math.PI / 2))
-            .linearScalar(2)
+            .offset(new SparkFunOTOS.Pose2D(0.75, 1.25, (3 * Math.PI) / 2))
+            .linearScalar((1.5948401437125748 + 1.627984743272835 + 1.5999497637164597) / 3)
             .angleUnit(AngleUnit.RADIANS);
 }

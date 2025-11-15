@@ -169,7 +169,7 @@ public class Hood extends SubsystemTemplate {
         hoodServo.setPosition(servoPos);
     }
 
-    private double mapAngleToServo(double angleDeg) {
+    public double mapAngleToServo(double angleDeg) {
         double angleRange = CALIBRATED_MAX_ANGLE - CALIBRATED_MIN_ANGLE;
         double servoRange = CALIBRATED_MAX_POS - CALIBRATED_MIN_POS;
         if (Math.abs(angleRange) < 1e-3) return CALIBRATED_MIN_POS;

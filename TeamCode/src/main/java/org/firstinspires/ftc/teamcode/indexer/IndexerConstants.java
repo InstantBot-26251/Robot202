@@ -17,7 +17,7 @@ public class IndexerConstants {
     public static double SLOTS = 3;
 
     // Position Constants - TUNE THESE
-    public static double ENCODER_TICKS_PER_SLOT = 443; // Distance between slots in encoder ticks
+    public static double ENCODER_TICKS_PER_SLOT = 448; // Distance between slots in encoder ticks
     public static double TRANSFER_POSITION_OFFSET = 999; // Offset from slot 0 to transfer position
 
     // Control Constants

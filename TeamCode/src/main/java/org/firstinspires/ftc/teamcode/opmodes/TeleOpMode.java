@@ -40,9 +40,9 @@ import java.util.List;
 
 @TeleOp(name = "TeleOp", group = "opmodes")
 public class TeleOpMode extends OpMode {
-//    Chassis chassis;
+    Chassis chassis;
 
-    private PedroChassis chassis;
+//    private PedroChassis chassis;
 
     double x, y, rx;
 
@@ -59,12 +59,19 @@ public class TeleOpMode extends OpMode {
     private Shooter shooter;
     private Hood hood;
 
+    private boolean hoodLocked = false; // Is hood currently locked at a set angle
+    private double lockedAngle = 0;
+
+    private boolean prevRIGHT = false; // Button state for locking
+    private boolean prevLEFT = false; // Button state for unlocking
+
     private static final int SLOT_0 = 0;
     private static final int SLOT_1 = 680;
     private static final int SLOT_2 = 1360;
 
-    private static final double MANIP_RESPONSE = 1.5;
-    private static final double DRIVER_RESPONSE = 1.5;
+    private static final double MANIP_RESPONSE = 1.9;
+    private static final double DRIVER_STRAIGHT_RESPONSE = 1.75;
+    private static final double DRIVER_TURN_RESPONSE = 1.3;
 
     private ATVision vision;
 
@@ -79,9 +86,7 @@ public class TeleOpMode extends OpMode {
 
         RobotMap.getInstance().init(hardwareMap);
 
-        chassis = PedroChassis.getInstance();
-
-        chassis.onTeleopInit();
+        chassis = new Chassis(hardwareMap);
 
         indexer = Indexer.getInstance();
         shooter = Shooter.getInstance();
@@ -122,16 +127,18 @@ public class TeleOpMode extends OpMode {
 
     @Override
     public void loop() {
-        chassis.periodic();   // MUST update follower() each loop
+        boolean RIGHT = gamepad1.right_bumper;
+        boolean LEFT = gamepad1.left_bumper;
 
-        y = applyResponseCurve(gamepad1.left_stick_y, DRIVER_RESPONSE);
-        x = applyResponseCurve(gamepad1.left_stick_x, DRIVER_RESPONSE);
-        rx = applyResponseCurve(gamepad1.right_stick_x, DRIVER_RESPONSE);
 
-        chassis.setDriveVectors(y, x, rx);
+        y = applyResponseCurve(gamepad1.left_stick_y, DRIVER_STRAIGHT_RESPONSE);
+        x = applyResponseCurve(gamepad1.left_stick_x, DRIVER_STRAIGHT_RESPONSE);
+        rx = -applyResponseCurve(gamepad1.right_stick_x, DRIVER_TURN_RESPONSE);
+
 
         double calculatedAngle = -1;
         double rangeInches = -1;
+        double exitVelocity = -1;
 
         if (aprilTagProcessor != null) {
             List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
@@ -140,30 +147,67 @@ public class TeleOpMode extends OpMode {
                 AprilTagDetection tag = detections.get(0);
                 if (tag != null && tag.ftcPose != null) {
                     rangeInches = tag.ftcPose.range;
-                    if (tag != null && tag.ftcPose != null) {
-                        rangeInches = tag.ftcPose.range;
 
-                        double exitVelocity = MathPM.calculateExitVelocity(
-                                FLYWHEEL_RPM, WHEEL_DIAMETER
-                        );
+                    exitVelocity = MathPM.calculateExitVelocity(
+                            FLYWHEEL_RPM, WHEEL_DIAMETER
+                    ) * 0.75;
 
-                        calculatedAngle = MathPM.calculateLaunchAngle(
-                                MathPM.inchesToMeters(rangeInches), exitVelocity, MathPM.inchesToMeters(41.45)
-                        );
+                    double heightDiffInches = 41.45; // Positive = target is higher
 
-                        if (calculatedAngle > 0) {
-                            // clamp to 0–70
-                            calculatedAngle = Math.max(0, Math.min(73, calculatedAngle));
-                        }
+                    calculatedAngle = MathPM.calculateLaunchAngle(
+                            MathPM.inchesToMeters(rangeInches),
+                            exitVelocity,
+                            MathPM.inchesToMeters(heightDiffInches)
+                    );
 
-                        if (calculatedAngle == -1 && rangeInches > 140) {
-                            calculatedAngle = 73;
-                        }
+                    if (calculatedAngle > 0) {
+                        // Apply fixed offset
+                        double ANGLE_OFFSET = 0.0;  // ← TUNE THIS (start with 5-10)
+                        calculatedAngle = calculatedAngle - ANGLE_OFFSET;
 
+                        // Clamp to safe range
+                        calculatedAngle = Math.max(5, Math.min(65, calculatedAngle));
+
+                        // Detailed telemetry
+                        telemetry.addData("Range", "%.1f in", rangeInches);
+                        telemetry.addData("Exit Vel", "%.2f m/s", exitVelocity);
+                        telemetry.addData("Height", "%.1f in", heightDiffInches);
+                        telemetry.addData("Calc Angle", "%.2f°", calculatedAngle);
+                        telemetry.addData("Hood Angle", "%.2f°", hood.getCurrentAngle());
                     }
+
+
+                    // CRITICAL DEBUG INFO
+                    telemetry.addLine("=== AUTO-AIM DIAGNOSTICS ===");
+                    telemetry.addData("Range", "%.1f in (%.2f m)",
+                            rangeInches, MathPM.inchesToMeters(rangeInches));
+                    telemetry.addData("Height Diff", "%.1f in (%.2f m)",
+                            heightDiffInches, MathPM.inchesToMeters(heightDiffInches));
+                    telemetry.addData("Exit Velocity", "%.2f m/s", exitVelocity);
+                    telemetry.addData("Flywheel RPM", FLYWHEEL_RPM);
+                    telemetry.addData("Wheel Diameter", "%.4f m", WHEEL_DIAMETER);
+
+                    telemetry.addLine("---");
+                    telemetry.addData("RAW Calc Angle", "%.2f°", calculatedAngle);
+
+                    telemetry.addLine("---");
+                    telemetry.addData("Current Hood", "%.2f°", hood.getCurrentAngle());
+                    telemetry.addData("Current Servo", "%.3f", hood.getCurrentServoPosition());
                 }
+
             }
         }
+
+        if (RIGHT && !prevRIGHT && calculatedAngle > 0) {
+            hoodLocked = true;
+            lockedAngle = calculatedAngle;
+            hood.setAngle(lockedAngle);
+        }
+        if (LEFT && !prevLEFT) {
+            hoodLocked = false; // unlock hood
+        }
+        prevRIGHT = RIGHT;
+        prevLEFT = LEFT;
 
 
 //        boolean manualHeld = gamepad2.left_bumper;
@@ -181,8 +225,6 @@ public class TeleOpMode extends OpMode {
 //                wasManual = false;
 //                snapIndexerToNearestSlot();
 //            }
-
-            hood.hoodServo.setPosition(gamepad2.right_stick_y);
 
 
 
@@ -225,6 +267,11 @@ public class TeleOpMode extends OpMode {
             indexer.rotateToPreviousSlot();
         }
 
+        if (gamepad2.a) {
+            shooter.startShooting1(-0.75);
+            shooter.startShooting2(-0.75);
+        }
+
         // DRIVER CONTROLS
 
         if (gamepad1.right_bumper) {
@@ -234,7 +281,7 @@ public class TeleOpMode extends OpMode {
         }
         // RESET HEADING
         if (gamepad1.y) {
-            chassis.resetHeading();
+            chassis.resetYaw();
         }
 
 
@@ -242,7 +289,7 @@ public class TeleOpMode extends OpMode {
 //            chassis.resetYaw();
 //        }
 
-//        chassis.drive(x, y, rx);
+        chassis.drive(x, y, rx);
 
         // Always run periodic
         indexer.periodic();

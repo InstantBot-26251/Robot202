@@ -22,6 +22,9 @@ public class Chassis {
 //    public static double modifierFR = 0.89516129032;
 //    public static double modifierBR = 0.9652173913;
 
+    public double driveScale = 1;
+
+
     public static double modifierFL = 0.9160353435;
     public static double modifierFR = 0.92307692308;
     public static double modifierBL = 1.0;
@@ -87,10 +90,10 @@ public class Chassis {
         double backRightPower = (y + x - rx) / denominator;
 
         // Apply velocity modifiers
-        fl.setPower(frontLeftPower * modifierFL);
-        fr.setPower(frontRightPower * modifierFR);
-        bl.setPower(backLeftPower * modifierBL);
-        br.setPower(backRightPower * modifierBR);
+        fl.setPower((frontLeftPower * modifierFL) * driveScale);
+        fr.setPower((frontRightPower * modifierFR) * driveScale);
+        bl.setPower((backLeftPower * modifierBL) * driveScale);
+        br.setPower((backRightPower * modifierBR) * driveScale);
 
         // Store velocities for telemetry
         lastVelocityFL = fl.getVelocity();
@@ -177,4 +180,11 @@ public class Chassis {
         };
     }
 
+    public void enableSlowMode() {
+        driveScale = 0.25;
+    }
+
+    public void disableSlowMode() {
+        driveScale = 1.0;
+    }
 }
