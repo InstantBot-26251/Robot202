@@ -37,6 +37,10 @@ public class Shooter extends SubsystemTemplate {
 
         shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        shooter1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+
         setState(ShooterState.RESTING);
     }
 

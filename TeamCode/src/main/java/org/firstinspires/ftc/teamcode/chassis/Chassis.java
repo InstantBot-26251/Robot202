@@ -103,10 +103,10 @@ public class Chassis {
     }
 
     public void moveBackward() {
-        fl.setPower(-0.5 * modifierFL);
-        fr.setPower(-0.5 * modifierFR);
-        bl.setPower(-0.5 * modifierBL);
-        br.setPower(-0.5 * modifierBR);
+        fl.setPower(0.5 * modifierFL);
+        fr.setPower(0.5 * modifierFR);
+        bl.setPower(0.5 * modifierBL);
+        br.setPower(0.5 * modifierBR);
     }
 
     public void stopMotors() {
@@ -122,6 +122,15 @@ public class Chassis {
         br.setPower(0.5 * modifierBR);
         bl.setPower(-0.5 * modifierBL);
     }
+
+
+    public void strafeLeft() {
+        fl.setPower(-0.5 * modifierFL);
+        fr.setPower(0.5 * modifierFR);
+        br.setPower(-0.5 * modifierBR);
+        bl.setPower(0.5 * modifierBL);
+    }
+
 
 
     public void calibrateVelocityModifiers(long durationMs) {

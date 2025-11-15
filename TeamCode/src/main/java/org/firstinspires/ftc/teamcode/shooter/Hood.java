@@ -51,9 +51,22 @@ public class Hood extends SubsystemTemplate {
     @Override
     public void onAutonomousInit() {
         telemetry = Enigma.getInstance().getTelemetry();
-        hoodServo = new InstantServo(RobotMap.getInstance().HOOD);
 
-        setAngle(SAFE_ANGLE);
+        // Ensure RobotMap has been initialized
+        if (RobotMap.getInstance().HOOD == null) {
+            if (telemetry != null)
+                telemetry.addLine("Hood Error: RobotMap.init(hardwareMap) not called OR 'hood' not in config.");
+            return;
+        }
+        // Set to safe starting position
+//        setAngle(SAFE_ANGLE);
+        hoodServo = new InstantServo(RobotMap.getInstance().HOOD);
+        double p = RobotMap.getInstance().HOOD.getPosition();
+        if (Double.isFinite(p)) {
+            currentServoPosition = p;
+            currentAngleDeg = mapServoToAngle(p);
+            targetAngleDeg = currentAngleDeg;
+        }
         moveTimer.reset();
 
         if (telemetry != null) {

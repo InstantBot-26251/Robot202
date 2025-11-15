@@ -24,7 +24,7 @@ import org.firstinspires.ftc.teamcode.indexer.Indexer;
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
 import org.firstinspires.ftc.teamcode.shooter.Hood;
 import org.firstinspires.ftc.teamcode.shooter.Shooter;
-import org.firstinspires.ftc.teamcode.shooter.commands.ShooterCommands;
+import org.firstinspires.ftc.teamcode.shooter.ShooterState;
 import org.firstinspires.ftc.teamcode.util.math.MathPM;
 import org.firstinspires.ftc.teamcode.vision.ATLivestream;
 import org.firstinspires.ftc.teamcode.vision.ATVision;
@@ -34,15 +34,14 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 
-@Autonomous(name = "Shoot 3")
+@Autonomous(name = "Shoot 3 RED")
 @Config
-public class AutoShoot extends OpMode {
+public class AutoShootR extends OpMode {
     DcMotorEx fl, fr, bl, br;
 
     AutoState currentState = AutoState.MOVETOSHOOTINGPOSITION;
 
     private ElapsedTime runtime = new ElapsedTime();
-    private double stateStartTime = 0;
 
     private ATVision vision;
 
@@ -66,75 +65,53 @@ public class AutoShoot extends OpMode {
     public void init() {
         RobotMap.getInstance().init(hardwareMap);
 
+        chassis = new Chassis(hardwareMap);
+
+
         indexer = Indexer.getInstance();
         shooter = Shooter.getInstance();
         hood = Hood.getInstance();
         vision = ATVision.getInstance();
 
-        indexer.onTeleopInit();
-        shooter.onTeleopInit();
-        hood.onTeleopInit();
-
-        indexer = Indexer.getInstance();
-
         indexer.initHardware();
+        indexer.onAutonomousInit();
+        shooter.onAutonomousInit();
+        hood.onAutonomousInit();
 
-        indexer.onTeleopInit();
-
-        fl = hardwareMap.get(DcMotorEx.class, "lf");
-        fr = hardwareMap.get(DcMotorEx.class, "rf");
-        bl = hardwareMap.get(DcMotorEx.class, "lr");
-        br = hardwareMap.get(DcMotorEx.class, "rr");
-
-        fl.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        fr.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        bl.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        br.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-
-        fl.setDirection(DcMotorEx.Direction.REVERSE);
-        fr.setDirection(DcMotorEx.Direction.REVERSE);
-
-        try {
-            atLivestream = new ATLivestream();
-
-            aprilTagProcessor = new AprilTagProcessor.Builder()
-                    .setLensIntrinsics(arducam_fx, arducam_fy, arducam_cx, arducam_cy)
-                    .build();
-
-            visionPortal = new VisionPortal.Builder()
-                    .setCamera(hardwareMap.get(WebcamName.class, "arducam"))
-                    .setCameraResolution(new Size(640, 480))
-                    .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
-                    .addProcessor(atLivestream)
-                    .addProcessor(aprilTagProcessor)
-                    .build();
-            // Stream to dashboard for visualization
-            dashboard.startCameraStream((org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource) atLivestream, DASHBOARD_FPS);
-
-
-            telemetry.addLine("VisionPortal initialized successfully.");
-        } catch (Exception e) {
-            telemetry.addLine("Initialization error: " + e.toString());
-        }
-
-        chassis = new Chassis(hardwareMap);
-
+//        try {
+//            // atLivestream = new ATLivestream();
+//
+//            aprilTagProcessor = new AprilTagProcessor.Builder()
+//                    .setLensIntrinsics(arducam_fx, arducam_fy, arducam_cx, arducam_cy)
+//                    .build();
+//
+//            visionPortal = new VisionPortal.Builder()
+//                    .setCamera(hardwareMap.get(WebcamName.class, "arducam"))
+//                    .setCameraResolution(new Size(640, 480))
+//                    .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
+//                    //.addProcessor(atLivestream)
+//                    .addProcessor(aprilTagProcessor)
+//                    .build();
+//            // Stream to dashboard for visualization
+//            //dashboard.startCameraStream((org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource) atLivestream, DASHBOARD_FPS);
+//
+//
+//            telemetry.addLine("VisionPortal initialized successfully.");
+//        } catch (Exception e) {
+//            telemetry.addLine("Initialization error: " + e.toString());
+//        }
     }
-
 
     @Override
     public void init_loop() {
         runtime.reset();
         telemetry.addData("Current State", currentState);
-        stateStartTime = runtime.seconds();
     }
-
 
     @Override
     public void start() {
         runtime.reset();
         currentState = AutoState.MOVETOSHOOTINGPOSITION;
-        stateStartTime = runtime.seconds();
     }
 
     @Override
@@ -142,51 +119,57 @@ public class AutoShoot extends OpMode {
         shooter.periodic();
         indexer.periodic();
         hood.periodic();
+        vision.periodic();
 
         double calculatedAngle = -1;
         double rangeInches = -1;
-        if (aprilTagProcessor != null) {
-            List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
+//        if (aprilTagProcessor != null) {
+//            List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
+//
+//            if (detections != null && !detections.isEmpty()) {
+//                AprilTagDetection tag = detections.get(0);
+//                if (tag != null && tag.ftcPose != null) {
+//                    rangeInches = tag.ftcPose.range;
+//                    if (tag != null && tag.ftcPose != null) {
+//                        rangeInches = tag.ftcPose.range;
+//
+//                        double exitVelocity = MathPM.calculateExitVelocity(
+//                                FLYWHEEL_RPM, WHEEL_DIAMETER
+//                        );
+//
+//                        calculatedAngle = MathPM.calculateLaunchAngle(
+//                                MathPM.inchesToMeters(rangeInches), exitVelocity, MathPM.inchesToMeters(41.45)
+//                        );
+//
+//                        if (calculatedAngle > 0) {
+//                            // clamp to 0–70
+//                            calculatedAngle = Math.max(0, Math.min(70, calculatedAngle));
+//                        }                   }
+//                }
+//            }
+//        }
 
-            if (detections != null && !detections.isEmpty()) {
-                AprilTagDetection tag = detections.get(0);
-                if (tag != null && tag.ftcPose != null) {
-                    rangeInches = tag.ftcPose.range;
-                    if (tag != null && tag.ftcPose != null) {
-                        rangeInches = tag.ftcPose.range;
-
-                        double exitVelocity = MathPM.calculateExitVelocity(
-                                FLYWHEEL_RPM, WHEEL_DIAMETER
-                        );
-
-                        calculatedAngle = MathPM.calculateLaunchAngle(
-                                MathPM.inchesToMeters(rangeInches), exitVelocity, MathPM.inchesToMeters(41.45)
-                        );
-
-                        if (calculatedAngle > 0) {
-                            // clamp to 0–70
-                            calculatedAngle = Math.max(0, Math.min(70, calculatedAngle));
-                        }                   }}}}
-
-        double elapsedTime = runtime.seconds() - stateStartTime;
+        double elapsedTime = runtime.seconds();
 
         switch (currentState) {
-
             case MOVETOSHOOTINGPOSITION:
                 if (elapsedTime < MOVE_TIME) {
                     chassis.moveBackward();
                 } else {
                     chassis.stopMotors();
-                     currentState = AutoState.SHOOTARTIFACT1;
+                    runtime.reset();
+                    currentState = AutoState.SHOOTARTIFACT1;
                 }
                 break;
 
             case SHOOTARTIFACT1:
                 if (!hasStartedShooting) {
                     // start shooting
-                    hood.setAngle(calculatedAngle);
+                    chassis.stopMotors();
+                    hood.setAngle(0.95);
+                    shooter.startShooting1(-0.63);
+                    shooter.startShooting2(-0.63);
                     indexer.startHopper();
-                    ShooterCommands.SHOOT.get();
                     hasStartedShooting = true;
 
                 } else if (elapsedTime < SHOOT_TIME) {
@@ -195,12 +178,15 @@ public class AutoShoot extends OpMode {
                 } else {
                     // stop everything
                     indexer.stopHopper();
-                    ShooterCommands.STOP.get();
+                    shooter.setState(ShooterState.RESTING);
+                    shooter.startShooting1(0);
+                    shooter.startShooting2(0);
                     // transition to next state
-                     currentState = AutoState.INDEXARTIFACT1;
-                     stateStartTime = runtime.seconds();
-                     break;
+                    runtime.reset();
+                    currentState = AutoState.MOVEOFFLINE;
                 }
+                break;
+
             case MOVEOFFLINE:
                 chassis.strafeRight();
                 break;
@@ -210,6 +196,4 @@ public class AutoShoot extends OpMode {
         telemetry.addData("Elapsed Time", "%.2f seconds", elapsedTime);
         telemetry.update();
     }
-
-
 }
