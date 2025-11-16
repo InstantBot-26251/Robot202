@@ -243,7 +243,6 @@ public class Indexer extends SubsystemTemplate {
         rotorPid.setSetPoint(targetPos);
     }
 
-
     /**
      * Rotates to the next slot (shortest path)
      */
@@ -258,9 +257,7 @@ public class Indexer extends SubsystemTemplate {
      */
     public void stopRotor() {
         rotorMotor.setPower(0);
-        if (state == IndexerState.ROTATING) {
-            state = IndexerState.IDLE;
-        }
+        state = IndexerState.IDLE;
     }
 
     /**
@@ -522,8 +519,6 @@ public class Indexer extends SubsystemTemplate {
         }
     }
 
-
-
     //------------------------GETTERS & SETTERS-----------------------------//
 
     public IndexerState getState() {
@@ -555,7 +550,7 @@ public class Indexer extends SubsystemTemplate {
         return getArtifactCount() == 0;
     }
 
-    private void setRotorPower(double power) {
+    public void setRotorPower(double power) {
         rotorMotor.setPower(power);
     }
 
@@ -591,10 +586,6 @@ public class Indexer extends SubsystemTemplate {
         rotorPid.setPID(ROTOR_kP, ROTOR_kI, ROTOR_kD);
     }
 
-    public void setPower(double power) {
-        rotorMotor.setPower(power);
-    }
-
     public void cancelPIDMovement() {
         // Change state FIRST - this prevents periodic() from continuing to run PID
         state = IndexerState.IDLE;
@@ -614,7 +605,6 @@ public class Indexer extends SubsystemTemplate {
         updatePID();
         if (state == IndexerState.ROTATING) {
             double output = rotorPid.calculate(rotorMotor.getCurrentPosition());
-
             setRotorPower(output);
 
             if (isAtTargetPosition()) {

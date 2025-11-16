@@ -47,7 +47,7 @@ public class IndexerPIDTuningManual extends OpMode {
     public void loop() {
         // Manual control with left stick
         double power = -gamepad1.left_stick_y * 0.5; // Limit to 50% power
-        indexer.setPower(power);
+        indexer.setRotorPower(power);
 
         // Display telemetry
         int currentPos = indexer.getRotorPosition();

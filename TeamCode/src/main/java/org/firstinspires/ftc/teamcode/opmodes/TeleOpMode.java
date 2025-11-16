@@ -21,6 +21,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.chassis.Chassis;
 import org.firstinspires.ftc.teamcode.chassis.PedroChassis;
+import org.firstinspires.ftc.teamcode.indexer.Enums.IndexerState;
 import org.firstinspires.ftc.teamcode.indexer.Indexer;
 import org.firstinspires.ftc.teamcode.robot.Enigma;
 import org.firstinspires.ftc.teamcode.robot.RobotMap;
@@ -218,7 +219,9 @@ public class TeleOpMode extends OpMode {
 //            wasManual = true;
 
         double power = -applyResponseCurve(gamepad2.left_stick_y * 0.7, MANIP_RESPONSE);
-        indexer.setPower(power);
+        if (indexer.getState() != IndexerState.ROTATING) {
+            indexer.setRotorPower(power);
+        }
 
 //        } else {
 //
@@ -248,10 +251,10 @@ public class TeleOpMode extends OpMode {
 
 
         if (gamepad2.x) {
-            hood.hoodServo.setPosition(0.5);
+            hood.hoodServo.setPosition(0.4);
             shooter.setState(ShooterState.SHOOTING);
-            shooter.startShooting1(-0.9);
-            shooter.startShooting2(-0.9);
+            shooter.startShooting1(-0.95);
+            shooter.startShooting2(-0.95);
         }
 
         if (gamepad2.y) {
